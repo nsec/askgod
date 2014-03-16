@@ -1,0 +1,7 @@
+[server]
+database_url = "postgres://askgod:askgod@localhost/askgod"
+admin_net = ::1/128, 127.0.0.1/32
+loglevel = 10
+show_writeup = true
+readonly = true
+logfile = askgod.log

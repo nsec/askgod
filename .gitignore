@@ -1,0 +1,3 @@
+server/askgod.conf
+server/askgod.log
+*.pyc
