@@ -204,7 +204,6 @@ class AskGod:
 
         return result
 
-    @admin_only
     def scores_scoreboard(self, client):
         """ Returns the scoreboard """
         db_store = client['db_store']
