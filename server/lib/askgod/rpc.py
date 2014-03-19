@@ -214,6 +214,9 @@ class AskGod:
                 continue
 
             teams[team.id] = {'teamid': team.id,
+                              'team_name': team.name,
+                              'team_country': team.country,
+                              'team_website': team.website,
                               'score': 0,
                               'score_flags': 0,
                               'score_writeups': 0}
@@ -441,15 +444,8 @@ class AskGod:
         """ Removes a team from the database """
         return generic_delete(client, DBTeam, entryid)
 
-    def teams_list(self, client):
-        """ List the public attributes of the teams """
-        teamlist = generic_list(client, DBTeam,
-                                ('id', 'name', 'country', 'website'),
-                                DBTeam.id)
-        return [team for team in teamlist if team['name']]
-
     @admin_only
-    def teams_list_admin(self, client):
+    def teams_list(self, client):
         """ List all the teams in the database """
         return generic_list(client, DBTeam, sort=DBTeam.id)
 
