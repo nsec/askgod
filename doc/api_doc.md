@@ -38,7 +38,17 @@ writeup\_time will be empty and writeup\_value will be 0.
 ## scores\_submit\_special(code, flag)
 
 # Admin functions
-## class\_fields
+Those functions are only accessible from admin subnets listed in the
+server's configuration.
+
+## class\_properties(class)
+Returns a list of string representing all the properties of the provided
+class.
+
+The list is sorted alphabetically in ascending order.
+
+When provided an invalid class name, a KeyError exception is returned.
+
 ## monitor(loglevel=20)
 This function is a bit of a hack. It won't return a valid XML-RPC
 response but will instead keep the connection alive indefinitely and
