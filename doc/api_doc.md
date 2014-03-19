@@ -19,7 +19,7 @@ If the scoreboard is disabled, all scores will be 0.
 If the writeups are disabled, score\_writeups will be 0.
 
 # Team functions
-## scores\_list\_submitted
+## scores\_list\_submitted()
 Returns a list of dict each containing:
  - flagid (int): ID of the flag
  - value (int): Number of points earned
@@ -39,7 +39,15 @@ writeup\_time will be empty and writeup\_value will be 0.
 
 # Admin functions
 ## class\_fields
-## monitor
+## monitor(loglevel=20)
+This function is a bit of a hack. It won't return a valid XML-RPC
+response but will instead keep the connection alive indefinitely and
+hook it up to the logging module. This will basically mirror the
+server's console to the client.
+
+Loglevel must be an integer representing a valid logging level.
+The default value is 20 (INFO).
+
 ## flags\_add
 ## flags\_delete
 ## flags\_list
