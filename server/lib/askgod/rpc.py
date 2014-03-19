@@ -61,9 +61,9 @@ class AskGod:
         return fields
 
     @admin_only
-    def monitor(self, client):
+    def monitor(self, client, loglevel=20):
         client['db_store'].close()
-        monitor_add_client(client['request'])
+        monitor_add_client(client['request'], loglevel)
 
     # Flags
     @admin_only

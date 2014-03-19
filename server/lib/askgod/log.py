@@ -27,7 +27,10 @@ class MonitorHandler(logging.Handler):
         logging.Handler.__init__(self)
 
     def emit(self, record):
-        for monitor in monitors:
+        for monitor, level in monitors:
+            if level > record.levelno:
+                continue
+
             try:
                 monitor.send("%s\n".encode('utf-8') % self.format(record))
             except:
@@ -35,13 +38,13 @@ class MonitorHandler(logging.Handler):
                 self.monitors.remove(monitor)
 
 
-def monitor_add_client(request):
+def monitor_add_client(request, loglevel):
     """
         Add the HTTP request to the monitor pool and start keeping it
         alive.
     """
 
-    monitors.append(request)
+    monitors.append((request, loglevel))
     request.setblocking(True)
 
     try:
@@ -74,7 +77,6 @@ def log_config(path=None, level=None):
 
     monitorlogger = MonitorHandler()
     monitorlogger.setFormatter(formatter)
-    monitorlogger.setLevel(level)
     logging.root.addHandler(monitorlogger)
 
     if path:
@@ -83,4 +85,4 @@ def log_config(path=None, level=None):
         filelogger.setLevel(level)
         logging.root.addHandler(filelogger)
 
-    logging.root.setLevel(level)
+    logging.root.setLevel(1)
