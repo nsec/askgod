@@ -36,14 +36,14 @@ class AskGod:
     """
 
     @admin_only
-    def class_fields(self, client, classname):
+    def class_properties(self, client, classname):
         classes = {'flag': DBFlag,
                    'score': DBScore,
                    'team': DBTeam,
                    'trigger': DBTrigger}
 
         if not classname in classes:
-            return False
+            raise KeyError("No such class name: %s" % classname)
 
         fields = []
         for field in dir(classes[classname]):
@@ -58,7 +58,7 @@ class AskGod:
 
             fields.append(field)
 
-        return fields
+        return sorted(fields)
 
     @admin_only
     def monitor(self, client, loglevel=20):
