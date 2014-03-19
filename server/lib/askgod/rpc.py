@@ -173,7 +173,7 @@ class AskGod:
             if entry.flag.writeup_value:
                 result['writeupid'] = "WID%s" % entry.id
             else:
-                result['writeupid'] = None
+                result['writeupid'] = ""
             result['flagid'] = entry.flagid
             result['value'] = entry.value
             result['submit_time'] = entry.submit_time
