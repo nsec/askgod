@@ -170,10 +170,6 @@ class AskGod:
 
         for entry in db_store.find(DBScore, teamid=client['team']):
             result = {}
-            if entry.flag.writeup_value:
-                result['writeupid'] = "WID%s" % entry.id
-            else:
-                result['writeupid'] = ""
             result['flagid'] = entry.flagid
             result['value'] = entry.value
             result['submit_time'] = entry.submit_time
@@ -182,6 +178,10 @@ class AskGod:
                 result['writeup_value'] = entry.writeup_value
             else:
                 result['writeup_value'] = 0
+            if entry.flag.writeup_value:
+                result['writeup_string'] = "WID%s" % entry.id
+            else:
+                result['writeup_string'] = ""
             result['return_string'] = entry.flag.return_string
             results.append(result)
 
