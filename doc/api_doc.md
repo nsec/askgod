@@ -26,9 +26,21 @@ The list is sorted by id in ascending order.
 
 # Team functions
 ## scores\_list\_submitted
+Returns a list of dict each containing:
+ - flagid (int): ID of the flag
+ - value (int): Number of points earned
+ - submit\_time (string): Submission time for the flag
+ - writeup\_value (int): Number of points earned for the writeup
+ - writeup\_time (string): Submission time for the writeup
+ - writeup\_string (string): Writeup identifier (WID + score entry ID)
+ - return\_string (string): Message shown when the flag was sent
 
+The list is sorted by flagid in ascending order.
 
-## scores\_submiti(flag)
+If the writeups are disabled, writeup\_string will be empty,
+writeup\_time will be empty and writeup\_value will be 0.
+
+## scores\_submit(flag)
 ## scores\_submit\_special(code, flag)
 
 # Admin functions
