@@ -30,10 +30,10 @@ Returns a list of dict each containing:
  - flagid (int): ID of the flag
  - value (int): Number of points earned
  - submit\_time (string): Submission time for the flag
+ - return\_string (string): Message shown when the flag was sent
  - writeup\_value (int): Number of points earned for the writeup
  - writeup\_submit\_time (string): Submission time for the writeup
  - writeup\_string (string): Writeup identifier (WID + score entry ID)
- - return\_string (string): Message shown when the flag was sent
 
 The list is sorted by flagid in ascending order.
 
