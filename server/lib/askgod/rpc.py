@@ -173,11 +173,11 @@ class AskGod:
             result['flagid'] = entry.flagid
             result['value'] = entry.value
             result['submit_time'] = entry.submit_time
-            result['writeup_time'] = entry.writeup_time
             if config_get_bool("server", "show_writeup", False):
                 result['writeup_value'] = entry.writeup_value
             else:
                 result['writeup_value'] = 0
+            result['writeup_submit_time'] = entry.writeup_time
             if entry.flag.writeup_value:
                 result['writeup_string'] = "WID%s" % entry.id
             else:
