@@ -185,7 +185,7 @@ class AskGod:
             result['return_string'] = entry.flag.return_string
             results.append(result)
 
-        return results
+        return sorted(results.values(), key=lambda result: result['flagid'])
 
     @admin_only
     def scores_list_timeline(self, client):
