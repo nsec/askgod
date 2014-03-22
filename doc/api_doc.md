@@ -44,7 +44,9 @@ Submits a flag (as a string).
 
 On success, a list of dict is returned, each of those dicts can contain
 any of those fields:
- - return\_string (string): String linked with the flag.
+ - return\_string (string): String linked with the flag
+ - trigger (bool): Set to true if the entry is the result of a trigger
+ - value (int): Number of points scored
  - writeup\_string (string): ID to be used for writeup submission
 
 All errors are returned as an XML-RPC exception with the exception
