@@ -1,0 +1,120 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright 2013-2014 - Stéphane Graber <stgraber@nsec.io>
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+import argparse
+try:
+    from xmlrpc.client import ServerProxy, Fault
+except:
+    from xmlrpclib import ServerProxy, Fault
+
+rpc_srv = None
+
+
+def scoreboard(parser, config, args):
+    for entry in rpc_srv.scores_scoreboard():
+        if config['scores_writeups']:
+            print("%s (%s/%s) | %s | %s | %s" %
+                  (entry['score'], entry['score_flags'],
+                   entry['score_writeups'],
+                   entry['team_name'], entry['team_country'],
+                   entry['team_website']))
+        else:
+            print("%s | %s | %s | %s" %
+                  (entry['score'], entry['team_name'],
+                   entry['team_country'], entry['team_website']))
+
+
+def submit_flag(parser, config, args):
+    try:
+        if hasattr(args, 'code') and args.code:
+            result = rpc_srv.scores_submit_special(args.code, args.flag)
+        else:
+            result = rpc_srv.scores_submit(args.flag)
+    except Fault as e:
+        parser.error(e.faultString.split(":", 1)[-1])
+
+    print("== FLAG ==")
+    for entry in result:
+        if "trigger" in entry and entry['trigger']:
+            print("\n== TRIGGER ==")
+
+        print("Congratulations you've been awarded '%s' points!" %
+              (entry['value']))
+
+        if 'return_string' in entry:
+            print("HINT: %s" % entry['return_string'])
+
+        if 'writeup_string' in entry:
+            print("You can get extra points by sending a write-up: ID=%s" %
+                  (entry['writeup_string']))
+
+
+def history(parser, config, args):
+    entries = rpc_srv.scores_list_submitted()
+    for key in entries:
+        if config['scores_writeups']:
+            print("* %s - id: %s, points: %s, writeup ID: %s" %
+                  (key["submit_time"], key["flagid"],
+                   key["value"], key["writeup_string"]))
+            if key["writeup_submit_time"]:
+                print("    --> Write Up submitted time: %s" %
+                      key["writeup_submit_time"])
+        else:
+            print("* %s - id: %s, points: %s" %
+                  (key["submit_time"], key["flagid"],
+                   key["value"]))
+
+        if key["return_string"]:
+            print("    --> Returned: %s" % (key["return_string"]))
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="AskGod client")
+
+    parser.add_argument("server", metavar="SERVER",
+                        help="Server URL")
+
+    subparsers = parser.add_subparsers()
+
+    parser_submit_flag = subparsers.add_parser(
+        'flag', help="Submit a flag")
+    parser_submit_flag.add_argument("flag", metavar="FLAG")
+    parser_submit_flag.add_argument("code", metavar="CODE", nargs="?",
+                                    default=None)
+    parser_submit_flag.set_defaults(func=submit_flag)
+
+    parser_history = subparsers.add_parser(
+        'history', help="Show submitted flags")
+    parser_history.set_defaults(func=history)
+
+    parser_scoreboard = subparsers.add_parser(
+        'scoreboard', help="Show current scoreboard")
+    parser_scoreboard.set_defaults(func=scoreboard)
+
+    args = parser.parse_args()
+
+    try:
+        rpc_srv = ServerProxy(args.server, allow_none=True)
+        config = rpc_srv.config_variables()
+    except Exception as e:
+        parser.error("Server isn't reachable: %s" % str(e))
+
+    if hasattr(args, 'func'):
+        args.func(parser, config, args)
+    else:
+        parser.error("No action provided.")
