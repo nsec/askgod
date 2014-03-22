@@ -65,7 +65,8 @@ class.
 
 The list is sorted alphabetically in ascending order.
 
-When provided an invalid class name, a KeyError exception is returned.
+All errors are returned as an XML-RPC exception with the exception
+string set accordingly.
 
 ## monitor(loglevel=20)
 This function is a bit of a hack. It won't return a valid XML-RPC

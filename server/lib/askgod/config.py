@@ -27,12 +27,12 @@ def config_get(section, key, default=KeyError):
     """
 
     if config and section in config and key in config[section]:
-        return config[section][key]
+        return str(config[section][key])
 
     if isinstance(default, Exception):
         raise default()
 
-    return str(default)
+    return default
 
 
 def config_get_bool(section, key, default=KeyError):
@@ -41,6 +41,11 @@ def config_get_bool(section, key, default=KeyError):
     """
 
     value = config_get(section, key, default)
+
+    if isinstance(value, bool):
+        return value
+
+    value = str(value)
 
     if value.lower() in ("yes", "true", "1", "on"):
         return True
@@ -54,6 +59,11 @@ def config_get_int(section, key, default=KeyError):
     """
 
     value = config_get(section, key, default)
+
+    if isinstance(value, int):
+        return value
+
+    value = str(value)
 
     if value.isdigit():
         return int(value)

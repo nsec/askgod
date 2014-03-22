@@ -14,6 +14,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from askgod.exceptions import AskgodException
 from storm.locals import Store
 
 import SimpleXMLRPCServer
@@ -32,7 +33,8 @@ class CustomXMLRPCServer(SocketServer.ThreadingMixIn,
 class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
     def _dispatch(self, method, params):
         if self.server.instance is None:
-            raise Exception("Not supported")
+            logging.error("Client without a server instance!")
+            raise AskgodException("Internal server error.")
 
         # call instance method directly
         func = None
@@ -43,10 +45,11 @@ class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 self.server.allow_dotted_names)
         except:
             logging.error(traceback.format_exc())
-            pass
+            raise AskgodException("Unable to resolve method name.")
 
         if not func:
-            raise Exception('method "%s" is not supported' % method)
+            logging.info("Function '%s' doesn't exist." % func)
+            raise AskgodException("Invalid method name.")
 
         # Per connection data (address, DB connection, request)
         client = {}
@@ -57,9 +60,9 @@ class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         # Actually call the function
         try:
             retval = func(client, *params)
-        except:
+        except not AskgodException:
             logging.error(traceback.format_exc())
-            return False
+            raise AskgodException("Internal server error.")
 
         # Attempt to close the DB connection (if still there)
         try:
