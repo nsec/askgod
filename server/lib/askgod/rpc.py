@@ -60,6 +60,12 @@ class AskGod:
 
         return sorted(fields)
 
+    def config_variables(self, client):
+        config = {}
+        config['scores_read_only'] = config_get_bool("scores_read_only", False)
+        config['scores_writeups'] = config_get_bool("scores_writeups", False)
+        return config
+
     @admin_only
     def monitor(self, client, loglevel=20):
         client['db_store'].close()
@@ -239,7 +245,7 @@ class AskGod:
     @team_only
     def scores_submit(self, client, flag):
         """ Submits/validates a flag """
-        if config_get_bool("server", "readonly", False):
+        if config_get_bool("server", "scores_read_only", False):
             return -6
 
         db_store = client['db_store']
@@ -324,7 +330,7 @@ class AskGod:
     @team_only
     def scores_submit_special(self, client, code, flag):
         """ Submits/validates a special flag (external validator) """
-        if config_get_bool("server", "readonly", False):
+        if config_get_bool("server", "scores_read_only", False):
             return -6
 
         db_store = client['db_store']
