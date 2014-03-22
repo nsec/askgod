@@ -344,6 +344,7 @@ def process_triggers(client):
         # Generate response
         response = {}
         response['value'] = score.value
+        response['trigger'] = True
         if entry.flag.return_string:
             response['return_string'] = entry.flag.return_string
 

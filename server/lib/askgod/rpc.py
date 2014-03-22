@@ -63,8 +63,10 @@ class AskGod:
 
     def config_variables(self, client):
         config = {}
-        config['scores_read_only'] = config_get_bool("scores_read_only", False)
-        config['scores_writeups'] = config_get_bool("scores_writeups", False)
+        config['scores_read_only'] = config_get_bool("server",
+                                                     "scores_read_only", False)
+        config['scores_writeups'] = config_get_bool("server",
+                                                    "scores_writeups", False)
         return config
 
     @admin_only
@@ -180,7 +182,7 @@ class AskGod:
             result['flagid'] = entry.flagid
             result['value'] = entry.value
             result['submit_time'] = entry.submit_time
-            if config_get_bool("server", "show_writeup", False):
+            if config_get_bool("server", "scores_writeups", False):
                 result['writeup_value'] = entry.writeup_value
             else:
                 result['writeup_value'] = 0
@@ -192,7 +194,7 @@ class AskGod:
             result['return_string'] = entry.flag.return_string
             results.append(result)
 
-        return sorted(results.values(), key=lambda result: result['flagid'])
+        return sorted(results, key=lambda result: result['flagid'])
 
     @admin_only
     def scores_list_timeline(self, client):
@@ -235,7 +237,7 @@ class AskGod:
             if score.value:
                 teams[score.teamid]['score'] += score.value
                 teams[score.teamid]['score_flags'] += score.value
-            if (config_get_bool("server", "show_writeup", False)
+            if (config_get_bool("server", "scores_writeups", False)
                     and score.writeup_value):
                 teams[score.teamid]['score'] += score.writeup_value
                 teams[score.teamid]['score_writeups'] += score.writeup_value
