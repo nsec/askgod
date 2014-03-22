@@ -348,6 +348,6 @@ def process_triggers(client):
             response['return_string'] = entry.flag.return_string
 
         if entry.flag.writeup_value:
-            response['writeupid'] = "WID%s" % score.id
+            response['writeup_string'] = "WID%s" % score.id
         retval.append(response)
     return retval

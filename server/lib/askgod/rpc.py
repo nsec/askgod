@@ -246,7 +246,7 @@ class AskGod:
     def scores_submit(self, client, flag):
         """ Submits/validates a flag """
         if config_get_bool("server", "scores_read_only", False):
-            return -6
+            raise Exception("Server is read-only.")
 
         db_store = client['db_store']
 
@@ -255,10 +255,11 @@ class AskGod:
             if not flag:
                 logging.debug("[team %02d] No flag provided" %
                               client['team'])
+                raise Exception("No flag provided.")
             else:
                 logging.debug("[team %02d] Invalid flag type: %s (%s)" %
                               (client['team'], flag, type(flag)))
-            return -3
+                raise Exception("Invalid type for flag.")
 
         if isinstance(flag, str):
             flag = flag.decode('utf-8')
@@ -269,7 +270,7 @@ class AskGod:
         if results.count() == 0:
             logging.debug("[team %02d] Flag '%s' doesn't exist." %
                           (client['team'], flag))
-            return -1
+            raise Exception("Flag isn't valid.")
 
         for entry in results:
             # Deal with per-team flags
@@ -283,14 +284,14 @@ class AskGod:
                 if count >= entry.counter:
                     logging.debug("[team %02d] Flag '%s' has been exhausted." %
                                   (client['team'], flag))
-                    return -4
+                    raise Exception("Too late, the flag has been exhausted.")
 
             # Check that it wasn't already submitted
             if db_store.find(DBScore, flagid=entry.id,
                              teamid=client['team']).count() > 0:
                 logging.debug("[team %02d] Flag '%s' was already submitted." %
                               (client['team'], flag))
-                return -2
+                raise Exception("The flag has already been submitted.")
 
             # Add to score
             score = DBScore()
@@ -314,7 +315,7 @@ class AskGod:
                 response['return_string'] = entry.return_string
 
             if entry.writeup_value:
-                response['writeupid'] = "WID%s" % score.id
+                response['writeup_string'] = "WID%s" % score.id
 
             retval.append(response)
 
@@ -325,7 +326,7 @@ class AskGod:
 
         logging.debug("[team %02d] Flag '%s' exists but can't be used." %
                       (client['team'], flag))
-        return -5
+        raise Exception("Unknown error with your flag, please report this.")
 
     @team_only
     def scores_submit_special(self, client, code, flag):
@@ -339,10 +340,11 @@ class AskGod:
                         not isinstance(code, unicode)):
             if not code:
                 logging.debug("[team %02d] No code provided" % client['team'])
+                raise Exception("No code provided.")
             else:
                 logging.debug("[team %02d] Invalid code type: %s (%s)" %
                               (client['team'], code, type(code)))
-            return -3
+                raise Exception("Invalid type for code.")
 
         if isinstance(code, str):
             code = code.decode('utf-8')
@@ -351,10 +353,11 @@ class AskGod:
                         not isinstance(flag, unicode)):
             if not flag:
                 logging.debug("[team %02d] No flag provided" % client['team'])
+                raise Exception("No flag provided.")
             else:
                 logging.debug("[team %02d] Invalid flag type: %s (%s)" %
                               (client['team'], flag, type(flag)))
-            return -3
+                raise Exception("Invalid type for flag.")
 
         if isinstance(code, str):
             flag = flag.decode('utf-8')
@@ -369,7 +372,7 @@ class AskGod:
         if results.count() == 0:
             logging.debug("[team %02d] Code '%s' doesn't exist." %
                           (client['team'], code))
-            return -1
+            raise Exception("Invalid code.")
 
         for entry in results:
             # Deal with per-team flags
@@ -382,14 +385,14 @@ class AskGod:
                 if count >= entry.counter:
                     logging.debug("[team %02d] Flag '%s' has been exhausted." %
                                   (client['team'], code))
-                    return -4
+                    raise Exception("Too late, the flag has been exhausted.")
 
             # Check that it wasn't already submitted
             if db_store.find(DBScore, flagid=entry.id,
                              teamid=client['team']).count() > 0:
                 logging.debug("[team %02d] Flag '%s' was already submitted." %
                               (client['team'], code))
-                return -2
+                raise Exception("The flag has already been submitted.")
 
             # Call validator
             if subprocess.call(["validator/%s" % entry.validator,
@@ -431,7 +434,7 @@ class AskGod:
 
         logging.debug("[team %02d] Flag '%s' exists but won't validate." %
                       (client['team'], flag))
-        return -5
+        raise Exception("Unknown error with your flag, please report this.")
 
     @admin_only
     def scores_update(self, client, entryid, entry):
