@@ -3,6 +3,11 @@ Public functions may be called by anyone over the XML-RPC interface.
 Those will usually be restricted to very high level aggregate of the
 data stored by askgod and may be cached along the way.
 
+## config\_variables()
+Returns a dict representing the server configuration, current keys include:
+ - scores\_read\_only (bool): Whether the server accepts flag submission
+ - scores\_writeups (bool): Whether writeups are enabled
+
 ## scores\_scoreboard()
 Returns a list of dict each containing:
  - teamid (int): ID of the team
@@ -35,7 +40,20 @@ If the writeups are disabled, writeup\_string will be empty,
 writeup\_time will be empty and writeup\_value will be 0.
 
 ## scores\_submit(flag)
+Submits a flag (as a string).
+
+On success, a list of dict is returned, each of those dicts can contain
+any of those fields:
+ - return\_string (string): String linked with the flag.
+ - writeup\_string (string): ID to be used for writeup submission
+
+All errors are returned as an XML-RPC exception with the exception
+string set accordingly.
+
 ## scores\_submit\_special(code, flag)
+Submits a special flag (as a string), identified by its code (also a string).
+
+The behavior and return values is identical to scores\_submit above.
 
 # Admin functions
 Those functions are only accessible from admin subnets listed in the
