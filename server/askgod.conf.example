@@ -2,6 +2,7 @@
 database_url = "postgres://askgod:askgod@localhost/askgod"
 admin_net = ::1/128, 127.0.0.1/32
 loglevel = 10
-scores_read_only = true
+scores_hide_others = false
+scores_read_only = false
 scores_writeups = true
 logfile = askgod.log

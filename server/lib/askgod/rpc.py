@@ -20,7 +20,7 @@
 from askgod.config import config_get_bool
 from askgod.db import db_commit, generic_add, generic_delete, generic_list, \
     generic_update, process_triggers, DBFlag, DBScore, DBTeam, DBTrigger
-from askgod.decorators import admin_only, team_only
+from askgod.decorators import admin_only, team_only, team_or_guest
 from askgod.exceptions import AskgodException
 from askgod.log import monitor_add_client
 
@@ -63,6 +63,9 @@ class AskGod:
 
     def config_variables(self, client):
         config = {}
+        config['scores_hide_others'] = config_get_bool("server",
+                                                       "scores_hide_others",
+                                                       False)
         config['scores_read_only'] = config_get_bool("server",
                                                      "scores_read_only", False)
         config['scores_writeups'] = config_get_bool("server",
@@ -213,12 +216,16 @@ class AskGod:
 
         return result
 
+    @team_or_guest
     def scores_scoreboard(self, client):
         """ Returns the scoreboard """
         db_store = client['db_store']
 
+        hide_others = config_get_bool("server", "scores_hide_others", False)
+
         teams = {}
         for team in db_store.find(DBTeam):
+            # Skip teams without a name (likely unconfigured)
             if not team.name:
                 continue
 
@@ -230,8 +237,17 @@ class AskGod:
                               'score_flags': 0,
                               'score_writeups': 0}
 
+        # The public scoreboard only shows 0 when hide_others is set
+        if hide_others and 'team' not in client:
+            return sorted(teams.values(), key=lambda team: team['teamid'])
+
         for score in db_store.find(DBScore):
+            # Skip score entries without a matching team
             if not score.teamid in teams:
+                continue
+
+            # Skip teams other than the requestor when hide_others is set
+            if hide_others and score.teamid != team.id:
                 continue
 
             if score.value:

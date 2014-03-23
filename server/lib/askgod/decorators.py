@@ -16,6 +16,7 @@
 
 from askgod.config import config_get_list
 from askgod.db import generic_list, DBTeam
+from askgod.exceptions import AskgodException
 
 import ipaddr
 import logging
@@ -38,7 +39,7 @@ def admin_only(fn):
         if not admin:
             logging.info("Unauthorized admin request from '%s'" %
                          client['client_address'])
-            return False
+            raise AskgodException("You are not an admin!")
 
         return fn(*args, **kwargs)
     return wrapped
@@ -72,6 +73,43 @@ def team_only(fn):
                     return fn(*args, **kwargs)
 
         logging.error("Team not found for '%s'" % client['client_address'])
-        return False
+        raise AskgodException("You are not a valid team!")
+
+    return wrapped
+
+
+def team_or_guest(fn):
+    """
+        Decorator used to check that the query comes from a valid team
+        network in which case client['team'] is set, otherwise, it's
+        kept unset.
+    """
+
+    def wrapped(*args, **kwargs):
+        client = args[1]
+
+        teamlist = generic_list(client, DBTeam,
+                                ('id', 'subnets'),
+                                DBTeam.id)
+
+        for team in teamlist:
+            subnets = team['subnets']
+            if not subnets:
+                continue
+
+            if "," in subnets:
+                subnets = [subnet.strip()
+                           for subnet in team['subnets'].split(",")]
+
+            for subnet in subnets:
+                if ipaddr.IPAddress(client['client_address']) \
+                        in ipaddr.IPNetwork(subnet):
+                    client['team'] = team['id']
+                    break
+
+            if 'team' in client:
+                break
+
+        return fn(*args, **kwargs)
 
     return wrapped

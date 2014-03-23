@@ -5,6 +5,7 @@ data stored by askgod and may be cached along the way.
 
 ## config\_variables()
 Returns a dict representing the server configuration, current keys include:
+ - scores\_hide\_others (bool): Whether other team scores are hidden
  - scores\_read\_only (bool): Whether the server accepts flag submission
  - scores\_writeups (bool): Whether writeups are enabled
 
@@ -20,7 +21,8 @@ Returns a list of dict each containing:
 
 The list is sorted by score in descending order.
 
-If the scoreboard is disabled, all scores will be 0.
+If the scoreboard is disabled, all scores will be 0 except for the team
+of the requestor.
 If the writeups are disabled, score\_writeups will be 0.
 
 # Team functions
