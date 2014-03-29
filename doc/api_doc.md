@@ -13,21 +13,6 @@ Returns a dict representing the server configuration, current keys include:
  - scores\_writeups (bool): Whether writeups are enabled
  - teams\_setdetails (bool): Whether teams can fill in their own information
 
-## scores\_progress(tags)
-This function may be called in 3 different ways:
- - Without arguments, in which case it'll return the overall progress of
-   the team if allowed by the server.
- - With a single tag as an argument (string) in which case, if the tag
-   is valid and allowed for team listing, the progress percentage will be
-   returned as a single integer.
- - With a list of tags in which case, a dict will be returned with the
-   key being the tag string as provided and the value being an integer
-   representing the percentage of progress for the given tag.
-
-On failure, exceptions will be raised. Note that if any provided flag is
-invalid, an exception will be raised, you will not get a partial dict in
-that case.
-
 ## scores\_scoreboard()
 Returns a list of dict each containing:
  - teamid (int): ID of the team
@@ -43,6 +28,55 @@ The list is sorted by score in descending order.
 If the scoreboard is disabled, all scores will be 0 except for the team
 of the requestor.
 If the writeups are disabled, score\_writeups will be 0.
+
+# Team functions
+## scores\_list\_submitted()
+Returns a list of dict each containing:
+ - flagid (int): ID of the flag
+ - value (int): Number of points earned
+ - submit\_time (string): Submission time for the flag
+ - return\_string (string): Message shown when the flag was sent
+ - writeup\_value (int): Number of points earned for the writeup
+ - writeup\_submit\_time (string): Submission time for the writeup
+ - writeup\_string (string): Writeup identifier (WID + score entry ID)
+
+The list is sorted by flagid in ascending order.
+
+If the writeups are disabled, writeup\_string will be empty,
+writeup\_time will be empty and writeup\_value will be 0.
+
+## scores\_progress(tags)
+This function may be called in 3 different ways:
+ - Without arguments, in which case it'll return the overall progress of
+   the team if allowed by the server.
+ - With a single tag as an argument (string) in which case, if the tag
+   is valid and allowed for team listing, the progress percentage will be
+   returned as a single integer.
+ - With a list of tags in which case, a dict will be returned with the
+   key being the tag string as provided and the value being an integer
+   representing the percentage of progress for the given tag.
+
+On failure, exceptions will be raised. Note that if any provided flag is
+invalid, an exception will be raised, you will not get a partial dict in
+that case.
+
+## scores\_submit(flag)
+Submits a flag (as a string).
+
+On success, a list of dict is returned, each of those dicts can contain
+any of those fields:
+ - return\_string (string): String linked with the flag
+ - trigger (bool): Set to true if the entry is the result of a trigger
+ - value (int): Number of points scored
+ - writeup\_string (string): ID to be used for writeup submission
+
+All errors are returned as an XML-RPC exception with the exception
+string set accordingly.
+
+## scores\_submit\_special(code, flag)
+Submits a special flag (as a string), identified by its code (also a string).
+
+The behavior and return values is identical to scores\_submit above.
 
 ## teams\_getdetails()
 Returns a dict containing information related to the caller's team:
@@ -68,40 +102,6 @@ an existing value requires admin privileges.
 
 If this feature is disabled, an exception will be raised.
 Support for the feature may be checked through config\_variables().
-
-# Team functions
-## scores\_list\_submitted()
-Returns a list of dict each containing:
- - flagid (int): ID of the flag
- - value (int): Number of points earned
- - submit\_time (string): Submission time for the flag
- - return\_string (string): Message shown when the flag was sent
- - writeup\_value (int): Number of points earned for the writeup
- - writeup\_submit\_time (string): Submission time for the writeup
- - writeup\_string (string): Writeup identifier (WID + score entry ID)
-
-The list is sorted by flagid in ascending order.
-
-If the writeups are disabled, writeup\_string will be empty,
-writeup\_time will be empty and writeup\_value will be 0.
-
-## scores\_submit(flag)
-Submits a flag (as a string).
-
-On success, a list of dict is returned, each of those dicts can contain
-any of those fields:
- - return\_string (string): String linked with the flag
- - trigger (bool): Set to true if the entry is the result of a trigger
- - value (int): Number of points scored
- - writeup\_string (string): ID to be used for writeup submission
-
-All errors are returned as an XML-RPC exception with the exception
-string set accordingly.
-
-## scores\_submit\_special(code, flag)
-Submits a special flag (as a string), identified by its code (also a string).
-
-The behavior and return values is identical to scores\_submit above.
 
 # Admin functions
 Those functions are only accessible from admin subnets listed in the
