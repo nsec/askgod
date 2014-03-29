@@ -6,8 +6,27 @@ data stored by askgod and may be cached along the way.
 ## config\_variables()
 Returns a dict representing the server configuration, current keys include:
  - scores\_hide\_others (bool): Whether other team scores are hidden
+ - scores\_overall\_progress (bool): Whether it's possible for teams to
+   get their overall progress (percentage of the sum of the points of all
+   achievable flags).
  - scores\_read\_only (bool): Whether the server accepts flag submission
  - scores\_writeups (bool): Whether writeups are enabled
+ - teams\_setdetails (bool): Whether teams can fill in their own information
+
+## scores\_progress(tags)
+This function may be called in 3 different ways:
+ - Without arguments, in which case it'll return the overall progress of
+   the team if allowed by the server.
+ - With a single tag as an argument (string) in which case, if the tag
+   is valid and allowed for team listing, the progress percentage will be
+   returned as a single integer.
+ - With a list of tags in which case, a dict will be returned with the
+   key being the tag string as provided and the value being an integer
+   representing the percentage of progress for the given tag.
+
+On failure, exceptions will be raised. Note that if any provided flag is
+invalid, an exception will be raised, you will not get a partial dict in
+that case.
 
 ## scores\_scoreboard()
 Returns a list of dict each containing:
@@ -24,6 +43,31 @@ The list is sorted by score in descending order.
 If the scoreboard is disabled, all scores will be 0 except for the team
 of the requestor.
 If the writeups are disabled, score\_writeups will be 0.
+
+## teams\_getdetails()
+Returns a dict containing information related to the caller's team:
+ - id (int): The team's ID
+ - name (string): The team's name
+ - country (string): Two letters ISO code
+ - website (string): The team's website
+
+The strings may be empty if unset.
+
+## teams\_setdetails(properties)
+One time setup of an unconfigured team.
+This takes a dict of the various fields that need to be set and returns
+True on success or raises the appropriate exception on failure.
+
+The valid keys are:
+ - name (string): Name of the team
+ - country (string): Two capital letters (country ISO code)
+ - website (string): URL of the team's website
+
+Only fields that aren't already set may be configured this way, changing
+an existing value requires admin privileges.
+
+If this feature is disabled, an exception will be raised.
+Support for the feature may be checked through config\_variables().
 
 # Team functions
 ## scores\_list\_submitted()
