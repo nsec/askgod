@@ -6,7 +6,7 @@ data stored by askgod and may be cached along the way.
 ## config\_variables()
 Returns a dict representing the server configuration, current keys include:
  - scores\_hide\_others (bool): Whether other team scores are hidden
- - scores\_overall\_progress (bool): Whether it's possible for teams to
+ - scores\_progress\_overall (bool): Whether it's possible for teams to
    get their overall progress (percentage of the sum of the points of all
    achievable flags).
  - scores\_read\_only (bool): Whether the server accepts flag submission
@@ -33,6 +33,7 @@ If the writeups are disabled, score\_writeups will be 0.
 ## scores\_list\_submitted()
 Returns a list of dict each containing:
  - flagid (int): ID of the flag
+ - description (string): Description of the flag
  - value (int): Number of points earned
  - submit\_time (string): Submission time for the flag
  - return\_string (string): Message shown when the flag was sent

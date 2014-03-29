@@ -14,6 +14,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+from askgod.exceptions import AskgodException
+
 
 def convert_properties(entry):
     for key, value in entry.items():
@@ -23,11 +25,11 @@ def convert_properties(entry):
 
 def validate_properties(table, entry):
     if not isinstance(entry, dict):
-        raise TypeError("Expected a dict.")
+        raise AskgodException("Expected a dict.")
 
     properties = [key for key in dir(table)
                   if not key.startswith("_")]
 
     for key in entry.keys():
         if key not in properties:
-            raise IndexError("Invalid key: '%s'" % key)
+            raise AskgodException("Invalid key: '%s'" % key)

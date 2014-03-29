@@ -26,8 +26,44 @@ except:
 rpc_srv = None
 
 
+def get_details(parser, config, args):
+    try:
+        team = sorted(rpc_srv.teams_getdetails().items())
+    except Fault as e:
+        parser.error(e.faultString.split(":", 1)[-1])
+
+    for key, value in team:
+        print("%s: %s" % (key, value))
+
+
+def set_details(parser, config, args):
+    try:
+        if rpc_srv.teams_setdetails({args.key: args.value}):
+            print("Updated successfuly")
+    except Fault as e:
+        parser.error(e.faultString.split(":", 1)[-1])
+
+
+def progress(parser, config, args):
+    try:
+        if len(args.tags) == 0:
+            print("%d%%" % rpc_srv.scores_progress())
+        elif len(args.tags) == 1:
+            print("%d%%" % rpc_srv.scores_progress(args.tags[0]))
+        else:
+            for key, value in rpc_srv.scores_progress(args.tags).items():
+                print("%s => %d%%" % (key, value))
+    except Fault as e:
+        parser.error(e.faultString.split(":", 1)[-1])
+
+
 def scoreboard(parser, config, args):
-    for entry in rpc_srv.scores_scoreboard():
+    try:
+        scoreboard = rpc_srv.scores_scoreboard()
+    except Fault as e:
+        parser.error(e.faultString.split(":", 1)[-1])
+
+    for entry in scoreboard:
         if config['scores_writeups']:
             print("%s (%s/%s) | %s | %s | %s" %
                   (entry['score'], entry['score_flags'],
@@ -66,7 +102,11 @@ def submit_flag(parser, config, args):
 
 
 def history(parser, config, args):
-    entries = rpc_srv.scores_list_submitted()
+    try:
+        entries = rpc_srv.scores_list_submitted()
+    except Fault as e:
+        parser.error(e.faultString.split(":", 1)[-1])
+
     for key in entries:
         if config['scores_writeups']:
             print("* %s - id: %s, points: %s, writeup ID: %s" %
@@ -98,9 +138,24 @@ if __name__ == '__main__':
                                     default=None)
     parser_submit_flag.set_defaults(func=submit_flag)
 
+    parser_getdetails = subparsers.add_parser(
+        'get_details', help="Show current team details")
+    parser_getdetails.set_defaults(func=get_details)
+
+    parser_setdetails = subparsers.add_parser(
+        'set_details', help="Set team details")
+    parser_setdetails.add_argument("key", metavar="KEY")
+    parser_setdetails.add_argument("value", metavar="VALUE")
+    parser_setdetails.set_defaults(func=set_details)
+
     parser_history = subparsers.add_parser(
         'history', help="Show submitted flags")
     parser_history.set_defaults(func=history)
+
+    parser_progress = subparsers.add_parser(
+        'progress', help="Get team progress")
+    parser_progress.add_argument("tags", metavar="TAG", nargs="*")
+    parser_progress.set_defaults(func=progress)
 
     parser_scoreboard = subparsers.add_parser(
         'scoreboard', help="Show current scoreboard")

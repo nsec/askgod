@@ -43,8 +43,8 @@ class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
                 self.server.instance,
                 method,
                 self.server.allow_dotted_names)
-        except:
-            logging.error(traceback.format_exc())
+        except Exception as e:
+            logging.info("Failed to resolv '%s': %s" % (method, e))
             raise AskgodException("Unable to resolve method name.")
 
         if not func:

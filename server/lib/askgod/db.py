@@ -15,6 +15,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from askgod.utils import convert_properties, validate_properties
+from askgod.exceptions import AskgodException
 
 from storm.locals import DateTime, Int, Max, Reference, ReferenceSet
 from storm.locals import Select, Store, Unicode
@@ -209,7 +210,7 @@ def generic_add(client, dbclass, entry):
     db_store = client['db_store']
 
     if 'id' in entry:
-        raise Exception("You can't pass the 'id' field in an entry.")
+        raise AskgodException("You can't pass the 'id' field in an entry.")
 
     convert_properties(entry)
     validate_properties(dbclass, entry)
@@ -226,11 +227,11 @@ def generic_delete(client, dbclass, entryid):
     db_store = client['db_store']
 
     if not isinstance(entryid, int):
-        raise Exception("The ID must be an integer.")
+        raise AskgodException("The ID must be an integer.")
 
     results = db_store.find(dbclass, id=entryid)
     if results.count() != 1:
-        raise IndexError("Can't find a match for id=%s" % entryid)
+        raise AskgodException("Can't find a match for id=%s" % entryid)
 
     dbentry = results[0]
 
@@ -272,14 +273,14 @@ def generic_update(client, dbclass, entryid, entry):
     db_store = client['db_store']
 
     if not isinstance(entryid, int):
-        raise Exception("The ID must be an integer.")
+        raise AskgodException("The ID must be an integer.")
 
     if 'id' in entry:
-        raise Exception("You can't pass the 'id' field in an entry.")
+        raise AskgodException("You can't pass the 'id' field in an entry.")
 
     results = db_store.find(dbclass, id=entryid)
     if results.count() != 1:
-        raise IndexError("Can't find a match for id=%s" % entryid)
+        raise AskgodException("Can't find a match for id=%s" % entryid)
 
     convert_properties(entry)
     validate_properties(dbclass, entry)

@@ -17,9 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-from askgod.config import config_get_bool
-from askgod.db import db_commit, generic_add, generic_delete, generic_list, \
-    generic_update, process_triggers, DBFlag, DBScore, DBTeam, DBTrigger
+from askgod.config import config_get_bool, config_get_list
+from askgod.db import db_commit, convert_properties, generic_add, \
+    generic_delete, generic_list, generic_update, process_triggers, \
+    validate_properties, DBFlag, DBScore, DBTeam, DBTrigger
 from askgod.decorators import admin_only, team_only, team_or_guest
 from askgod.exceptions import AskgodException
 from askgod.log import monitor_add_client
@@ -66,10 +67,14 @@ class AskGod:
         config['scores_hide_others'] = config_get_bool("server",
                                                        "scores_hide_others",
                                                        False)
+        config['scores_progress_overall'] = config_get_bool(
+            "server", "scores_progress_overall", False)
         config['scores_read_only'] = config_get_bool("server",
                                                      "scores_read_only", False)
         config['scores_writeups'] = config_get_bool("server",
                                                     "scores_writeups", False)
+        config['teams_setdetails'] = config_get_bool("server",
+                                                     "teams_setdetails", False)
         return config
 
     @admin_only
@@ -183,6 +188,8 @@ class AskGod:
         for entry in db_store.find(DBScore, teamid=client['team']):
             result = {}
             result['flagid'] = entry.flagid
+            result['description'] = (entry.flag.description
+                                     if entry.flag.description else "")
             result['value'] = entry.value
             result['submit_time'] = entry.submit_time
             if config_get_bool("server", "scores_writeups", False):
@@ -194,7 +201,8 @@ class AskGod:
                 result['writeup_string'] = "WID%s" % entry.id
             else:
                 result['writeup_string'] = ""
-            result['return_string'] = entry.flag.return_string
+            result['return_string'] = (entry.flag.return_string
+                                       if entry.flag.return_string else "")
             results.append(result)
 
         return sorted(results, key=lambda result: result['flagid'])
@@ -216,6 +224,69 @@ class AskGod:
 
         return result
 
+    @team_only
+    def scores_progress(self, client, tags=None):
+        """ Returns the progress percentage """
+        db_store = client['db_store']
+
+        if not tags:
+            # Overall progress
+            if not config_get_bool("server", "scores_progress_overall", False):
+                raise AskgodException("Overall progress is disabled.")
+
+            total = 0.0
+            obtained = 0.0
+            for entry in db_store.find(DBFlag):
+                if entry.teamid and entry.teamid != client['team']:
+                    continue
+
+                total += entry.value
+
+            for entry in db_store.find(DBScore, teamid=client['team']):
+                obtained += entry.value
+
+            return int(obtained / total * 100)
+
+        ret = {}
+        if not isinstance(tags, list):
+            ret = 0.0
+            tags = [tags]
+
+        for tag in tags:
+            namespace = tag.split(":")[0]
+            if namespace not in config_get_list("server",
+                                                "scores_progress_tags",
+                                                []):
+                raise AskgodException("Disallowed tag namespaced.")
+
+            total = 0.0
+            obtained = 0.0
+
+            for entry in db_store.find(DBFlag):
+                if entry.teamid and entry.teamid != client['team']:
+                    continue
+                entry_tags = entry.tags.split(",")
+
+                if tag in entry_tags:
+                    total += entry.value
+
+            for entry in db_store.find(DBScore, teamid=client['team']):
+                entry_tags = entry.flag.tags.split(",")
+                if tag in entry_tags:
+                    obtained += entry.value
+
+            if isinstance(ret, dict):
+                if not total:
+                    ret[tag] = 0
+                    continue
+                ret[tag] = int(obtained / total * 100)
+            else:
+                if not total:
+                    return 0
+                return int(obtained / total * 100)
+
+        return ret
+
     @team_or_guest
     def scores_scoreboard(self, client):
         """ Returns the scoreboard """
@@ -230,9 +301,12 @@ class AskGod:
                 continue
 
             teams[team.id] = {'teamid': team.id,
-                              'team_name': team.name,
-                              'team_country': team.country,
-                              'team_website': team.website,
+                              'team_name': (team.name
+                                            if team.name else ""),
+                              'team_country': (team.country
+                                               if team.country else ""),
+                              'team_website': (team.website
+                                               if team.website else ""),
                               'score': 0,
                               'score_flags': 0,
                               'score_writeups': 0}
@@ -476,10 +550,65 @@ class AskGod:
         """ Removes a team from the database """
         return generic_delete(client, DBTeam, entryid)
 
+    @team_only
+    def teams_getdetails(self, client):
+        """ Return the details for the caller's team """
+
+        db_store = client['db_store']
+
+        results = db_store.find(DBTeam, id=client['team'])
+        if results.count() != 1:
+            raise AskgodException("Can't find a match for id=%s" %
+                                  client['team'])
+
+        dbentry = results[0]
+
+        details = {'id': dbentry.id,
+                   'name': dbentry.name if dbentry.name else "",
+                   'country': dbentry.country if dbentry.country else "",
+                   'website': dbentry.website if dbentry.website else ""}
+
+        return details
+
     @admin_only
     def teams_list(self, client):
         """ List all the teams in the database """
         return generic_list(client, DBTeam, sort=DBTeam.id)
+
+    @team_only
+    def teams_setdetails(self, client, fields):
+        """ Set the details for the caller's team """
+
+        if not config_get_bool("server", "teams_setdetails", False):
+            raise AskgodException("Setting team details isn't allowed.")
+
+        db_store = client['db_store']
+
+        convert_properties(fields)
+        validate_properties(DBTeam, fields)
+
+        results = db_store.find(DBTeam, id=client['team'])
+        if results.count() != 1:
+            raise AskgodException("Can't find a match for id=%s"
+                                  % client['team'])
+
+        dbentry = results[0]
+
+        if set(fields.keys()) - set(['name', 'country', 'website']):
+            raise AskgodException("Invalid field provided.")
+
+        if "country" in fields:
+            if len(fields['country']) != 2 or not fields['country'].isalpha():
+                raise AskgodException("Invalid country ISO code.")
+            fields['country'] = fields['country'].upper()
+
+        for key, value in fields.items():
+            if getattr(dbentry, key):
+                raise AskgodException("Field is already set: %s" % key)
+
+            setattr(dbentry, key, value)
+
+        return db_commit(db_store)
 
     @admin_only
     def teams_update(self, client, entryid, entry):
