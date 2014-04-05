@@ -15,6 +15,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 from askgod.exceptions import AskgodException
+from askgod.config import config_get_list
 from storm.locals import Store
 
 import SimpleXMLRPCServer
@@ -163,5 +164,9 @@ class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
             origins, if allowed, sets the appropriate headers.
         """
 
-        request.send_header("Access-Control-Allow-Origin", "http://www.nsec")
-        request.send_header("Access-Control-Allow-Headers", "Content-Type")
+        allowed_origins = config_get_list("server", "allowed_origins")
+        request_origin = request.headers.get("Origin", "")
+
+        if request_origin and request_origin in allowed_origins:
+            request.send_header("Access-Control-Allow-Origin", request_origin)
+            request.send_header("Access-Control-Allow-Headers", "Content-Type")
