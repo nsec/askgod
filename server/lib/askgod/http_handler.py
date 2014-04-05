@@ -57,6 +57,10 @@ class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         client['db_store'] = Store(self.server.database)
         client['request'] = self.request
 
+        forwarded_address = self.headers.get("X-Forwarded-For", "")
+        if forwarded_address:
+            client['client_address'] = forwarded_address
+
         # Actually call the function
         try:
             retval = func(client, *params)
