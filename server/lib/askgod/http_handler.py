@@ -170,3 +170,6 @@ class CustomRequestHandler(SimpleXMLRPCServer.SimpleXMLRPCRequestHandler):
         if request_origin and request_origin in allowed_origins:
             request.send_header("Access-Control-Allow-Origin", request_origin)
             request.send_header("Access-Control-Allow-Headers", "Content-Type")
+        else:
+            logging.info("Got request from unauthorized origin: %s" %
+                         (request_origin))
