@@ -32,10 +32,11 @@ class MonitorHandler(logging.Handler):
                 continue
 
             try:
-                monitor.send("%s\n".encode('utf-8') % self.format(record))
+                monitor.send(self.format(record).encode("utf-8"))
+                monitor.sendall("\n")
             except:
                 monitor.close()
-                self.monitors.remove(monitor)
+                monitors.remove(monitor)
 
 
 def monitor_add_client(request, loglevel):
