@@ -29,6 +29,20 @@ If the scoreboard is disabled, all scores will be 0 except for the team
 of the requestor.
 If the writeups are disabled, score\_writeups will be 0.
 
+## scores\_timeline()
+Returns a list of dict each containing:
+ - teamid (int): ID of the team
+ - submit\_time (string): Submission time for the flag
+ - value (int): Number of points earned
+
+The list is sorted by teamid and submit\_time. It is assumed that the
+caller can get the team names, website, ... from the scoreboard call.
+
+If the scoreboard is disabled, no entries will be returned except for
+the team of the requestor which will have their timeline returned to
+them.
+
+
 # Team functions
 ## scores\_list\_submitted()
 Returns a list of dict each containing:

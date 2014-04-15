@@ -27,6 +27,8 @@ from askgod.log import monitor_add_client
 
 from storm.locals import And, Reference, ReferenceSet
 
+from operator import itemgetter
+
 import datetime
 import logging
 import subprocess
@@ -207,23 +209,6 @@ class AskGod:
 
         return sorted(results, key=lambda result: result['flagid'])
 
-    @admin_only
-    def scores_list_timeline(self, client):
-        """ Returns the timeline """
-        db_store = client['db_store']
-
-        result = []
-
-        for score in db_store.find(DBScore).order_by(DBScore.submit_time):
-            if not score.team.name:
-                continue
-
-            result.append({'teamid': score.teamid,
-                           'submit_time': score.submit_time,
-                           'value': score.value})
-
-        return result
-
     @team_only
     def scores_progress(self, client, tags=None):
         """ Returns the progress percentage """
@@ -321,7 +306,7 @@ class AskGod:
                 continue
 
             # Skip teams other than the requestor when hide_others is set
-            if hide_others and score.teamid != team.id:
+            if hide_others and score.teamid != client['team']:
                 continue
 
             if score.value:
@@ -532,6 +517,33 @@ class AskGod:
                       (client['team'], flag))
         raise AskgodException("Unknown error with your flag, "
                               "please report this.")
+
+    @team_or_guest
+    def scores_timeline(self, client):
+        """ Returns the timeline """
+        db_store = client['db_store']
+
+        hide_others = config_get_bool("server", "scores_hide_others", False)
+
+        result = []
+
+        # Guests don't get to see anything when hide_others is set
+        if hide_others and "team" not in client:
+            return result
+
+        for score in db_store.find(DBScore).order_by(DBScore.submit_time):
+            if not score.team.name:
+                continue
+
+            # Skip teams other than the requestor when hide_others is set
+            if hide_others and score.teamid != client['team']:
+                continue
+
+            result.append({'teamid': score.teamid,
+                           'submit_time': score.submit_time,
+                           'value': score.value})
+
+        return sorted(result, key=itemgetter('teamid', 'submit_time'))
 
     @admin_only
     def scores_update(self, client, entryid, entry):
