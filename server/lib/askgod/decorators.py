@@ -65,6 +65,8 @@ def team_only(fn):
             if "," in subnets:
                 subnets = [subnet.strip()
                            for subnet in team['subnets'].split(",")]
+            else:
+                subnets = [subnets]
 
             for subnet in subnets:
                 if ipaddr.IPAddress(client['client_address']) \
@@ -100,6 +102,8 @@ def team_or_guest(fn):
             if "," in subnets:
                 subnets = [subnet.strip()
                            for subnet in team['subnets'].split(",")]
+            else:
+                subnets = [subnets]
 
             for subnet in subnets:
                 if ipaddr.IPAddress(client['client_address']) \
