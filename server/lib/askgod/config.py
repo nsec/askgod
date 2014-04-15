@@ -81,6 +81,9 @@ def config_get_list(section, key, default=KeyError):
     if ", " in value:
         return value.split(", ")
 
+    if not isinstance(value, list):
+        value = [value]
+
     return value
 
 
