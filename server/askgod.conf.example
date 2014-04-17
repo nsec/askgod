@@ -4,6 +4,7 @@ allowed_origins = https://askgod.ctf
 database_url = "postgres://askgod:askgod@localhost/askgod"
 logfile = askgod.log
 loglevel = 10
+notify_servers =
 scores_hide_others = false
 scores_progress_tags = op
 scores_progress_overall = true

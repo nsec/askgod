@@ -16,6 +16,7 @@
 
 from askgod.utils import convert_properties, validate_properties
 from askgod.exceptions import AskgodException
+from askgod.notify import notify_flag
 
 from storm.locals import DateTime, Int, Max, Reference, ReferenceSet
 from storm.locals import Select, Store, Unicode
@@ -341,6 +342,7 @@ def process_triggers(client):
 
         logging.info("[team %02d] Scores %s points with flagid=%s (trigger)" %
                      (team, entry.flag.value, entry.flag.id))
+        notify_flag(team, entry.flag.code, entry.flag.value, entry.flag.tags)
 
         # Generate response
         response = {}

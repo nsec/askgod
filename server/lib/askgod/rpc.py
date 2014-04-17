@@ -24,6 +24,7 @@ from askgod.db import db_commit, convert_properties, generic_add, \
 from askgod.decorators import admin_only, team_only, team_or_guest
 from askgod.exceptions import AskgodException
 from askgod.log import monitor_add_client
+from askgod.notify import notify_flag
 
 from storm.locals import And, Reference, ReferenceSet
 
@@ -348,6 +349,7 @@ class AskGod:
         if results.count() == 0:
             logging.debug("[team %02d] Flag '%s' doesn't exist." %
                           (client['team'], flag))
+            notify_flag(client['team'], "", 0, "")
             raise AskgodException("Flag isn't valid.")
 
         for entry in results:
@@ -384,6 +386,7 @@ class AskGod:
 
             logging.info("[team %02d] Scores %s points with flagid=%s" %
                          (client['team'], entry.value, entry.id))
+            notify_flag(client['team'], entry.code, entry.value, entry.tags)
 
             retval = []
 
@@ -452,6 +455,7 @@ class AskGod:
         if results.count() == 0:
             logging.debug("[team %02d] Code '%s' doesn't exist." %
                           (client['team'], code))
+            notify_flag(client['team'], "", 0, "")
             raise AskgodException("Invalid code.")
 
         for entry in results:
@@ -494,6 +498,7 @@ class AskGod:
 
             logging.info("[team %02d] Scores %s points with flagid=%s" %
                          (client['team'], entry.value, entry.id))
+            notify_flag(client['team'], entry.code, entry.value, entry.tags)
 
             retval = []
 
