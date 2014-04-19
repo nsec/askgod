@@ -620,6 +620,9 @@ class AskGod:
             fields['country'] = fields['country'].upper()
 
         for key, value in fields.items():
+            if not value:
+                continue
+
             if getattr(dbentry, key):
                 raise AskgodException("Field is already set: %s" % key)
 
