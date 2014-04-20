@@ -109,15 +109,15 @@ def history(parser, config, args):
 
     for key in entries:
         if config['scores_writeups']:
-            print("* %s - id: %s, points: %s, writeup ID: %s" %
-                  (key["submit_time"], key["flagid"],
+            print("* %s - id (%s): %s, points: %s, writeup ID: %s (%s)" %
+                  (key["submit_time"], key["flagid"], key['description'],
                    key["value"], key["writeup_string"]))
             if key["writeup_submit_time"]:
                 print("    --> Write Up submitted time: %s" %
                       key["writeup_submit_time"])
         else:
-            print("* %s - id: %s, points: %s" %
-                  (key["submit_time"], key["flagid"],
+            print("* %s - id: %s (%s), points: %s" %
+                  (key["submit_time"], key["flagid"], key['description'],
                    key["value"]))
 
         if key["return_string"]:
