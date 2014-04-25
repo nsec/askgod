@@ -286,6 +286,9 @@ class AskGod:
             if not team.name:
                 continue
 
+            if team.id == 0 and client.get("team", None) != 0:
+                continue
+
             teams[team.id] = {'teamid': team.id,
                               'team_name': (team.name
                                             if team.name else ""),
@@ -538,6 +541,9 @@ class AskGod:
 
         for score in db_store.find(DBScore).order_by(DBScore.submit_time):
             if not score.team.name:
+                continue
+
+            if score.team.id == 0 and client.get("team", None) != 0:
                 continue
 
             # Skip teams other than the requestor when hide_others is set
