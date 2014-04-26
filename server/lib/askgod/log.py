@@ -36,7 +36,10 @@ class MonitorHandler(logging.Handler):
                 monitor.sendall("\n")
             except:
                 monitor.close()
-                monitors.remove(monitor)
+                try:
+                    monitors.remove(monitor)
+                except:
+                    pass
 
 
 def monitor_add_client(request, loglevel):
