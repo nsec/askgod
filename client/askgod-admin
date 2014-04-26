@@ -16,7 +16,8 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-
+from datetime import datetime
+from time import mktime
 import argparse
 try:
     from xmlrpc.client import ServerProxy
@@ -260,6 +261,22 @@ Content-Length: 217
     server.shutdown(socket.SHUT_WR)
     print("Disconnected from server")
 
+def scores_list(parser, config, args):
+    try:
+        flags = {o['id'] : o for o in rpc_srv.flags_list()}
+        teams = {o['id'] : o for o in rpc_srv.teams_list()}
+        scores = rpc_srv.scores_list()
+
+        for score in scores:
+            d = datetime.fromtimestamp(mktime(score['submit_time'].timetuple()))
+            print("%-8s %-25s %-18s %-015s" %
+                (d.strftime("%X"),
+                teams[score['teamid']]['name'],
+                flags[score['flagid']]['code'],
+                flags[score['flagid']]['description']))
+    except Exception as e:
+        print("[FAIL]: Couldn't list flags: %s" % (e))
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="AskGod admin client")
 
@@ -405,6 +422,11 @@ if __name__ == '__main__':
     parser_scoreboard = subparsers.add_parser(
         "scoreboard", help="Show current scoreboard")
     parser_scoreboard.set_defaults(func=scoreboard)
+
+    # Scores List
+    parser_scoreslist = subparsers.add_parser(
+        "scores_list", help="(admin) list all scores")
+    parser_scoreslist.set_defaults(func=scores_list)
 
     args = parser.parse_args()
 
