@@ -36,8 +36,8 @@ import os
 import socket
 import sys
 
-list_fields = {'flags': ('code', 'flag', 'value', 'writeup_value', 'teamid',
-                         'triggerid')}
+list_fields = {'flags': ('code', 'flag', 'value', 'writeup_value', 'tags',
+                         'teamid', 'triggerid')}
 
 
 def scoreboard(parser, config, args):
