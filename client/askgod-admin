@@ -118,11 +118,7 @@ def add_entry(parser, config, args):
 
 
 def list_entry(parser, config, args):
-    if hasattr(args, 'suffix') and args.suffix:
-        rpc_function = getattr(rpc_srv, "%s_list_%s" %
-                               (args.prefix, args.suffix))
-    else:
-        rpc_function = getattr(rpc_srv, "%s_list" % args.prefix)
+    rpc_function = getattr(rpc_srv, "%s_list" % args.prefix)
 
     if hasattr(args, 'id') and args.id:
         entries = [entry for entry in rpc_function()
@@ -359,7 +355,6 @@ if __name__ == '__main__':
     parser_teams_list = subparser_teams.add_parser(
         'list', help="List the teams")
     parser_teams_list.set_defaults(func=list_entry)
-    parser_teams_list.set_defaults(suffix="admin")
 
     parser_teams_edit = subparser_teams.add_parser(
         'update', help="Update a team")
