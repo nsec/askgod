@@ -1,0 +1,428 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Copyright 2013-2014 - Stéphane Graber <stgraber@nsec.io>
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License version 2, as
+# published by the Free Software Foundation.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
+import argparse
+try:
+    from xmlrpc.client import ServerProxy
+except ImportError:
+    from xmlrpclib import ServerProxy
+
+try:
+    from url.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
+rpc_srv = None
+
+import json
+import operator
+import os
+import socket
+import sys
+
+list_fields = {'flags': ('code', 'flag', 'value', 'writeup_value', 'teamid',
+                         'triggerid')}
+
+
+def scoreboard(parser, config, args):
+    teams = {}
+    for team in rpc_srv.teams_list():
+        teams[team['id']] = team
+
+    for entry in rpc_srv.scores_scoreboard():
+        team = teams[entry['teamid']]
+        print("%s (%s/%s) | %s | %s | %s" %
+              (entry['score'], entry['score_flags'], entry['score_writeups'],
+               team['name'], team['country'], team['website']))
+
+
+def grant_flag(parser, config, args):
+    try:
+        if rpc_srv.scores_grant_flag(args.teamid, args.flagid, args.value):
+            print("[DONE]: Granted flagid '%s' to '%s'" %
+                  (args.flagid, args.teamid))
+        else:
+            print("[FAIL]: Failed for unknown reason")
+    except Exception as e:
+        print("[FAIL] Couldn't grant flag: %s" % e)
+
+
+def grant_writeup(parser, config, args):
+    try:
+        if rpc_srv.scores_grant_writeup(args.scoreid, args.value):
+            print("[DONE]: Granted writeup points for '%s'" %
+                  (args.scoreid))
+        else:
+            print("[FAIL]: Failed for unknown reason")
+    except Exception as e:
+        print("[FAIL] Couldn't grant writeup points: %s" % e)
+
+
+def add_entry(parser, config, args):
+    rpc_function = getattr(rpc_srv, "%s_add" % args.prefix)
+
+    if args.prefix == "triggers":
+        mapping = rpc_srv.flags_list()
+
+    entries = []
+    with open(args.input_file, "r") as fd:
+        dump = json.loads(fd.read())
+        if isinstance(dump, list):
+            entries = dump
+        else:
+            entries = [dump]
+
+    count = 0
+    for entry in entries:
+        count += 1
+        if not isinstance(entry, dict):
+            print("[FAIL][entry %s]: Invalid type: %s" % (count, type(entry)))
+            continue
+
+        if 'id' in entry:
+            print("[FAIL][entry %s]: Entry can't contain key 'id'" % (count))
+            continue
+
+        elif 'flagid' in entry and not isinstance(entry['flagid'], int):
+            eid = [flag['id'] for flag in mapping
+                   if flag['code'] == entry['flagid']]
+            if len(eid) != 1:
+                print("[FAIL][entry %s]: Unable to find flagid: %s" %
+                      flag['id'])
+                continue
+            entry['flagid'] = eid[0]
+
+        try:
+            if rpc_function(entry):
+                print("[DONE][entry %s]: Added successfuly" % (count))
+            else:
+                print("[FAIL][entry %s]: Failed for unknown reason" % (count))
+        except Exception as e:
+            print("[FAIL][entry %s]: Couldn't be added: %s" % (count, e))
+
+
+def list_entry(parser, config, args):
+    if hasattr(args, 'suffix') and args.suffix:
+        rpc_function = getattr(rpc_srv, "%s_list_%s" %
+                               (args.prefix, args.suffix))
+    else:
+        rpc_function = getattr(rpc_srv, "%s_list" % args.prefix)
+
+    if hasattr(args, 'id') and args.id:
+        entries = [entry for entry in rpc_function()
+                   if entry['id'] == args.id]
+
+        if len(entries) != 1:
+            print("Couldn't find a record with ID: %s" % args.id)
+            return
+
+        entry = entries[0]
+
+        print("=== Details for ID: %s ===" % (args.id))
+        for key, value in sorted(entry.items()):
+            if isinstance(value, str):
+                value = "\"%s\"" % value
+
+            print(" - %s: %s" % (key, value))
+        return
+
+    if args.prefix == "scores":
+        teams = {}
+        for team in rpc_srv.teams_list():
+            teams[team['id']] = team
+        entries = sorted(rpc_function(),
+                         key=operator.itemgetter('teamid', 'flagid'))
+        last_team = None
+    else:
+        entries = sorted(rpc_function(), key=lambda entry: entry['id'])
+
+    for entry in entries:
+        for key, value in entry.items():
+            if isinstance(value, str):
+                entry[key] = "\"%s\"" % value
+
+        if (args.prefix == "scores" and
+                last_team != entry['teamid']):
+
+            if not entry['teamid'] in teams:
+                name = "Unknown"
+            else:
+                name = teams[entry['teamid']]['name']
+
+            print("=== Team: %02d (%s) ===" % (entry['teamid'], name))
+            last_team = entry['teamid']
+
+        values = []
+        for key, value in sorted(entry.items()):
+            if (args.prefix in list_fields and
+                    key not in list_fields[args.prefix]):
+                continue
+
+            values.append("%s=%s" % (key, value))
+
+        print(" - %s: %s" % (entry['id'], ", ".join(values)))
+
+
+def update_entry(parser, config, args):
+    rpc_function = getattr(rpc_srv, "%s_update" % args.prefix)
+
+    entries = []
+    with open(args.input_file, "r") as fd:
+        dump = json.loads(fd.read())
+        if isinstance(dump, list):
+            entries = dump
+        else:
+            entries = [dump]
+
+    count = 0
+    for entry in entries:
+        count += 1
+        if not isinstance(entry, dict):
+            print("[FAIL][entry %s]: Invalid type: %s" % (count, type(entry)))
+            continue
+
+        if 'id' not in entry:
+            print("[FAIL][entry %s]: Entry must contain key 'id'" % (count))
+            continue
+
+        entry_id = entry['id']
+        entry.pop('id')
+
+        try:
+            if rpc_function(entry_id, entry):
+                print("[DONE][entry %s]: Updated successfuly" % (count))
+            else:
+                print("[FAIL][entry %s]: Failed for unknown reason" % (count))
+        except Exception as e:
+            print("[FAIL][entry %s]: Couldn't be updated: %s" % (count, e))
+
+
+def remove_entry(parser, config, args):
+    rpc_function = getattr(rpc_srv, "%s_delete" % args.prefix)
+    try:
+        if rpc_function(args.id):
+            print("[DONE]: Record removed succesfuly")
+        else:
+            print("[FAIL]: Failed for unknown reason")
+    except Exception as e:
+        print("[FAIL]: Couldn't be removed: %s" % (e))
+
+
+def monitor(parser, config, args):
+    parse = urlparse(args.server)
+    host = parse.hostname
+    port = parse.port
+
+    if parse.scheme == "https":
+        parser.error("Only direct connection over http is supported.")
+
+    if not port:
+        port = 8080
+
+    server = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+    server.connect((host, port))
+    server.setblocking(True)
+
+    server.sendall("""POST /RPC2 HTTP/1.1
+Content-Type: text/xml
+Content-Length: 217
+
+<?xml version='1.0'?>
+<methodCall>
+    <methodName>monitor</methodName>
+    <params>
+        <param>
+            <value>
+                <int>%d</int>
+            </value>
+        </param>
+    </params>
+</methodCall>\n""" % args.loglevel)
+
+    while 1:
+        data = server.recv(64)
+        if not data:
+            break
+        sys.stdout.write(data)
+
+    server.shutdown(socket.SHUT_WR)
+    print("Disconnected from server")
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="AskGod admin client")
+
+    parser.add_argument("server", metavar="SERVER",
+                        help="Server URL")
+
+    subparsers = parser.add_subparsers()
+
+    # Manage flags
+    parser_flags = subparsers.add_parser(
+        'flags', help="Add/Edit/Remove flags")
+    parser_flags.set_defaults(prefix="flags")
+    subparser_flags = parser_flags.add_subparsers()
+
+    parser_flags_add = subparser_flags.add_parser(
+        'add', help="Add a flag")
+    parser_flags_add.set_defaults(func=add_entry)
+    parser_flags_add.add_argument("input_file", metavar="FILE", type=str,
+                                  help="JSON file")
+
+    parser_flags_list = subparser_flags.add_parser(
+        'list', help="List the flags")
+    parser_flags_list.set_defaults(func=list_entry)
+    parser_flags_list.add_argument("id", metavar="FLAGID", type=int,
+                                   nargs="?")
+
+    parser_flags_edit = subparser_flags.add_parser(
+        'update', help="Update a flag")
+    parser_flags_edit.set_defaults(func=update_entry)
+    parser_flags_edit.add_argument("input_file", metavar="FILE", type=str,
+                                   help="JSON file")
+
+    parser_flags_remove = subparser_flags.add_parser(
+        'remove', help="Remove a flag")
+    parser_flags_remove.set_defaults(func=remove_entry)
+    parser_flags_remove.add_argument("id", metavar="FLAGID", type=int)
+
+    # Manage scores
+    parser_scores = subparsers.add_parser(
+        'scores', help="Add/Edit/Remove scores")
+    parser_scores.set_defaults(prefix="scores")
+    subparser_scores = parser_scores.add_subparsers()
+
+    parser_scores_add = subparser_scores.add_parser(
+        'add', help="Add a score")
+    parser_scores_add.set_defaults(func=add_entry)
+    parser_scores_add.add_argument("input_file", metavar="FILE", type=str,
+                                   help="JSON file")
+
+    parser_scores_grant_flag = subparser_scores.add_parser(
+        'grant-flag', help="Give a flag to a team")
+    parser_scores_grant_flag.set_defaults(func=grant_flag)
+    parser_scores_grant_flag.add_argument("teamid", metavar="TEAMID", type=int)
+    parser_scores_grant_flag.add_argument("flagid", metavar="FLAGID", type=int)
+    parser_scores_grant_flag.add_argument("value", metavar="VALUE", type=int,
+                                          nargs="?", default=None)
+
+    parser_scores_grant_writeup = subparser_scores.add_parser(
+        'grant-writeup', help="Give the writeup points for a flag")
+    parser_scores_grant_writeup.set_defaults(func=grant_writeup)
+    parser_scores_grant_writeup.add_argument("scoreid", metavar="SCOREID",
+                                             type=int)
+    parser_scores_grant_writeup.add_argument("value", metavar="VALUE",
+                                             type=int, nargs="?", default=None)
+
+    parser_scores_list = subparser_scores.add_parser(
+        'list', help="List the scores")
+    parser_scores_list.set_defaults(func=list_entry)
+
+    parser_scores_edit = subparser_scores.add_parser(
+        'update', help="Update a score")
+    parser_scores_edit.set_defaults(func=update_entry)
+    parser_scores_edit.add_argument("input_file", metavar="FILE", type=str,
+                                    help="JSON file")
+
+    parser_scores_remove = subparser_scores.add_parser(
+        'remove', help="Remove a score")
+    parser_scores_remove.set_defaults(func=remove_entry)
+    parser_scores_remove.add_argument("id", metavar="ID", type=int)
+
+    # Manage teams
+    parser_teams = subparsers.add_parser(
+        'teams', help="Add/Edit/Remove teams")
+    parser_teams.set_defaults(prefix="teams")
+    subparser_teams = parser_teams.add_subparsers()
+
+    parser_teams_add = subparser_teams.add_parser(
+        'add', help="Add a team")
+    parser_teams_add.set_defaults(func=add_entry)
+    parser_teams_add.add_argument("input_file", metavar="FILE", type=str,
+                                  help="JSON file")
+
+    parser_teams_list = subparser_teams.add_parser(
+        'list', help="List the teams")
+    parser_teams_list.set_defaults(func=list_entry)
+    parser_teams_list.set_defaults(suffix="admin")
+
+    parser_teams_edit = subparser_teams.add_parser(
+        'update', help="Update a team")
+    parser_teams_edit.set_defaults(func=update_entry)
+    parser_teams_edit.add_argument("input_file", metavar="FILE", type=str,
+                                   help="JSON file")
+
+    parser_teams_remove = subparser_teams.add_parser(
+        'remove', help="Remove a team")
+    parser_teams_remove.set_defaults(func=remove_entry)
+    parser_teams_remove.add_argument("id", metavar="ID", type=int)
+
+    # Manage triggers
+    parser_triggers = subparsers.add_parser(
+        'triggers', help="Add/Edit/Remove triggers")
+    parser_triggers.set_defaults(prefix="triggers")
+    subparser_triggers = parser_triggers.add_subparsers()
+
+    parser_triggers_add = subparser_triggers.add_parser(
+        'add', help="Add a trigger")
+    parser_triggers_add.set_defaults(func=add_entry)
+    parser_triggers_add.add_argument("input_file", metavar="FILE", type=str,
+                                     help="JSON file")
+
+    parser_triggers_list = subparser_triggers.add_parser(
+        'list', help="List the triggers")
+    parser_triggers_list.set_defaults(func=list_entry)
+
+    parser_triggers_edit = subparser_triggers.add_parser(
+        'update', help="Update a trigger")
+    parser_triggers_edit.set_defaults(func=update_entry)
+    parser_triggers_edit.add_argument("input_file", metavar="FILE", type=str,
+                                      help="JSON file")
+
+    parser_triggers_remove = subparser_triggers.add_parser(
+        'remove', help="Remove a trigger")
+    parser_triggers_remove.set_defaults(func=remove_entry)
+    parser_triggers_remove.add_argument("id", metavar="ID", type=int)
+
+    # Monitor
+    parser_monitor = subparsers.add_parser(
+        'monitor', help="Live monitoring")
+    parser_monitor.add_argument("--loglevel", metavar="LOGLEVEL", type=int,
+                                default=40)
+    parser_monitor.set_defaults(func=monitor)
+
+    # Public
+    parser_scoreboard = subparsers.add_parser(
+        'scoreboard', help="Show current scoreboard")
+    parser_scoreboard.set_defaults(func=scoreboard)
+
+    args = parser.parse_args()
+
+    try:
+        rpc_srv = ServerProxy(args.server, allow_none=True)
+        config = rpc_srv.config_variables()
+    except Exception as e:
+        parser.error("Server isn't reachable: %s" % str(e))
+
+    if hasattr(args, 'file') and not os.path.isfile(args.input_file):
+        parser.error("'%s' isn't a valid path." % args.input_file)
+
+    if hasattr(args, 'func'):
+        args.func(parser, config, args)
+    else:
+        parser.error("No action provided.")
