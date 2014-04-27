@@ -310,7 +310,8 @@ class AskGod:
                 continue
 
             # Skip teams other than the requestor when hide_others is set
-            if hide_others and score.teamid != client['team']:
+            if hide_others and score.teamid != client['team'] \
+                    and client['team'] != 0:
                 continue
 
             if score.value:
@@ -547,7 +548,8 @@ class AskGod:
                 continue
 
             # Skip teams other than the requestor when hide_others is set
-            if hide_others and score.teamid != client['team']:
+            if hide_others and score.teamid != client['team'] \
+                    and client['team'] != 0:
                 continue
 
             result.append({'teamid': score.teamid,
