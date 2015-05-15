@@ -5,6 +5,7 @@ database_url = "postgres://askgod:askgod@localhost/askgod"
 logfile = askgod.log
 loglevel = 10
 notify_servers =
+notify_scripts =
 scores_hide_others = false
 scores_progress_tags = op
 scores_progress_overall = true

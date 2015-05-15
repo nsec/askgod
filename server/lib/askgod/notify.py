@@ -18,11 +18,14 @@ from askgod.config import config_get_list
 
 import json
 import logging
+import os
 import socket
+import subprocess
 
 
 def notify_flag(teamid, code, value, tags):
     notify_servers = config_get_list("server", "notify_servers", [])
+    notify_scripts = config_get_list("server", "notify_scripts", [])
 
     data = {'teamid': teamid,
             'code': code,
@@ -47,3 +50,12 @@ def notify_flag(teamid, code, value, tags):
             logging.error("Unable to reach the notify server: %s" % server)
 
     socket.setdefaulttimeout(old_timeout)
+
+    for script in notify_scripts:
+        cmd = [script, teamid, code, value, tags]
+        with open(os.devnull, "a") as devnull:
+            ret = subprocess.call(cmd, stdout=devnull, stderr=devnull)
+
+        if ret != 0:
+            logging.error("Notify script '%s' returned non-zero: %s" %
+                          (script, ret))
