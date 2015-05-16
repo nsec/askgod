@@ -52,7 +52,7 @@ def notify_flag(teamid, code, value, tags):
     socket.setdefaulttimeout(old_timeout)
 
     for script in notify_scripts:
-        cmd = [script, teamid, code, value, tags]
+        cmd = [script, str(teamid), code.encode(), str(value), tags.encode()]
         with open(os.devnull, "a") as devnull:
             ret = subprocess.call(cmd, stdout=devnull, stderr=devnull)
 
