@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -69,6 +72,60 @@ func (c *client) cmdAdminDeleteScore(ctx *cli.Context) error {
 	err := c.queryStruct("DELETE", fmt.Sprintf("/scores/%s", ctx.Args().Get(0)), nil, nil)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
+	if ctx.NArg() < 1 {
+		cli.ShowSubcommandHelp(ctx)
+		return nil
+	}
+
+	// Flush all existing entries
+	if ctx.Bool("flush") {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Flush all scores (yes/no): ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSuffix(input, "\n")
+		if strings.ToLower(input) != "yes" {
+			return fmt.Errorf("User aborted flush operation")
+		}
+
+		scores := []api.AdminScore{}
+		err := c.queryStruct("GET", "/scores", nil, &scores)
+		if err != nil {
+			return err
+		}
+
+		for _, score := range scores {
+			err := c.queryStruct("DELETE", fmt.Sprintf("/scores/%d", score.ID), nil, nil)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Read th file
+	content, err := ioutil.ReadFile(ctx.Args().Get(0))
+	if err != nil {
+		return err
+	}
+
+	// Parse the JSON file
+	scores := []api.AdminScore{}
+	err = json.Unmarshal(content, &scores)
+	if err != nil {
+		return err
+	}
+
+	// Create the scores
+	for _, score := range scores {
+		err := c.queryStruct("POST", "/scores", score, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

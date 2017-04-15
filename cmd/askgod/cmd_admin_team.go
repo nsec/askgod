@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -55,6 +58,60 @@ func (c *client) cmdAdminAddTeam(ctx *cli.Context) error {
 	err := c.queryStruct("POST", "/teams", team, nil)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *client) cmdAdminImportTeams(ctx *cli.Context) error {
+	if ctx.NArg() < 1 {
+		cli.ShowSubcommandHelp(ctx)
+		return nil
+	}
+
+	// Flush all existing entries
+	if ctx.Bool("flush") {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Flush all teams (yes/no): ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSuffix(input, "\n")
+		if strings.ToLower(input) != "yes" {
+			return fmt.Errorf("User aborted flush operation")
+		}
+
+		teams := []api.AdminTeam{}
+		err := c.queryStruct("GET", "/teams", nil, &teams)
+		if err != nil {
+			return err
+		}
+
+		for _, team := range teams {
+			err := c.queryStruct("DELETE", fmt.Sprintf("/teams/%d", team.ID), nil, nil)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Read th file
+	content, err := ioutil.ReadFile(ctx.Args().Get(0))
+	if err != nil {
+		return err
+	}
+
+	// Parse the JSON file
+	teams := []api.AdminTeam{}
+	err = json.Unmarshal(content, &teams)
+	if err != nil {
+		return err
+	}
+
+	// Create the teams
+	for _, team := range teams {
+		err := c.queryStruct("POST", "/teams", team, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

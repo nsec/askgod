@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -69,6 +72,60 @@ func (c *client) cmdAdminDeleteFlag(ctx *cli.Context) error {
 	err := c.queryStruct("DELETE", fmt.Sprintf("/flags/%s", ctx.Args().Get(0)), nil, nil)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
+	if ctx.NArg() < 1 {
+		cli.ShowSubcommandHelp(ctx)
+		return nil
+	}
+
+	// Flush all existing entries
+	if ctx.Bool("flush") {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Printf("Flush all flags (yes/no): ")
+		input, _ := reader.ReadString('\n')
+		input = strings.TrimSuffix(input, "\n")
+		if strings.ToLower(input) != "yes" {
+			return fmt.Errorf("User aborted flush operation")
+		}
+
+		flags := []api.AdminFlag{}
+		err := c.queryStruct("GET", "/flags", nil, &flags)
+		if err != nil {
+			return err
+		}
+
+		for _, flag := range flags {
+			err := c.queryStruct("DELETE", fmt.Sprintf("/flags/%d", flag.ID), nil, nil)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Read th file
+	content, err := ioutil.ReadFile(ctx.Args().Get(0))
+	if err != nil {
+		return err
+	}
+
+	// Parse the JSON file
+	flags := []api.AdminFlag{}
+	err = json.Unmarshal(content, &flags)
+	if err != nil {
+		return err
+	}
+
+	// Create the flags
+	for _, flag := range flags {
+		err := c.queryStruct("POST", "/flags", flag, nil)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
