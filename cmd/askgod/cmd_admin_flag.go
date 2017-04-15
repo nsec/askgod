@@ -132,7 +132,6 @@ func (c *client) cmdAdminUpdateFlag(ctx *cli.Context) error {
 				return false
 			})
 
-			field.SetString(fields[1])
 			if !field.IsValid() {
 				return fmt.Errorf("Invalid key: %s", fields[0])
 			}
