@@ -138,6 +138,12 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 }
 
 func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	// Check if read-only
+	if r.config.Scoring.ReadOnly {
+		r.errorResponse(403, "Flag submission isn't allowed at this time", writer, request)
+		return
+	}
+
 	// Decode the provided JSON input
 	flag := api.FlagPost{}
 	err := json.NewDecoder(request.Body).Decode(&flag)
