@@ -56,7 +56,7 @@ func (r *rest) hasAccess(level string, request *http.Request) bool {
 	}
 
 	// Check if team
-	for _, entry := range r.config.Subnets.Admins {
+	for _, entry := range r.config.Subnets.Teams {
 		_, subnet, err := net.ParseCIDR(entry)
 		if err != nil {
 			r.logger.Error("Unable to parse configured subnet", log15.Ctx{"subnet": entry, "error": err})
@@ -73,7 +73,7 @@ func (r *rest) hasAccess(level string, request *http.Request) bool {
 	}
 
 	// Check if guest
-	for _, entry := range r.config.Subnets.Admins {
+	for _, entry := range r.config.Subnets.Guests {
 		_, subnet, err := net.ParseCIDR(entry)
 		if err != nil {
 			r.logger.Error("Unable to parse configured subnet", log15.Ctx{"subnet": entry, "error": err})
