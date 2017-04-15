@@ -1,3 +1,4 @@
-server/askgod.conf
-server/askgod.log
-*.pyc
+*.swp
+askgod.yaml
+askgod.log
+bin

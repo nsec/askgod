@@ -1,0 +1,81 @@
+# Daemon settings
+daemon:
+  # Additional allowed HTTP origins
+  allowed_origins:
+
+  # If in a cluster, the URL of all the other nodes
+  cluster_peers:
+
+  # HTTP port to bind
+  http_port: 9080
+
+  # HTTPs port to bind
+  https_port: 443
+
+  # TLS certificate or file path
+  https_certificate:
+
+  # TLS key or file path
+  https_key:
+
+  # Log level (critical, error, warning, info or debug)
+  log_level: debug
+
+  # Log file path
+  log_file: askgod.log
+
+# Database configuration
+database:
+  # Database driver (only postgresql for now)
+  driver: postgres
+
+  # Database host (FQDN or IP)
+  host: localhost
+
+  # Database username
+  username: askgod
+
+  # Database password
+  password: askgod
+
+  # Database name
+  name: askgod
+
+  # Number of connections
+  connections: 5
+
+# Scoring system configuration
+scoring:
+  # Name of the event
+  event_name: "My CTF"
+
+  # Hide other teams (guest will see nothing, admins will still see everything)
+  hide_others: false
+
+  # Disable the submission of new flags
+  read_only: false
+
+# Team configuration
+teams:
+  # The team can select its initial details (but not update afterwards)
+  self_register: true
+
+  # The team can update its details at any time
+  self_update: true
+
+# Subnet restrictions
+subnets:
+  # Admin API access
+  admins:
+    - ::1/128
+    - 127.0.0.1/32
+
+  # Team API access
+  teams:
+    - ::1/128
+    - 127.0.0.1/32
+
+  # Guest API access
+  guests:
+    - ::1/128
+    - 127.0.0.1/32
