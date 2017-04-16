@@ -1,11 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"os"
-	"reflect"
-	"strconv"
-	"strings"
 
 	"github.com/olekukonko/tablewriter"
 	"gopkg.in/urfave/cli.v1"
@@ -24,37 +20,10 @@ func (c *client) cmdDetails(ctx *cli.Context) error {
 
 	// Process any field update
 	if ctx.NArg() > 0 {
-		v := reflect.ValueOf(&resp)
-
 		for _, arg := range ctx.Args() {
-			fields := strings.SplitN(arg, "=", 2)
-			if len(fields) != 2 {
-				return fmt.Errorf("Bad key=value input: %s", arg)
-			}
-
-			field := v.Elem().FieldByNameFunc(func(name string) bool {
-				if strings.ToLower(name) == strings.ToLower(fields[0]) {
-					return true
-				}
-
-				return false
-			})
-
-			if !field.IsValid() {
-				return fmt.Errorf("Invalid key: %s", fields[0])
-			}
-
-			if field.Type() == reflect.TypeOf("") {
-				field.SetString(fields[1])
-			} else if field.Type() == reflect.TypeOf(int64(0)) {
-				intValue, err := strconv.ParseInt(fields[1], 10, 64)
-				if err != nil {
-					return err
-				}
-
-				field.SetInt(intValue)
-			} else {
-				return fmt.Errorf("Unsupported type for key: %s", fields[0])
+			err := setStructKey(&resp, arg)
+			if err != nil {
+				return err
 			}
 		}
 

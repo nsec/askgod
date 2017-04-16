@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"reflect"
-	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
@@ -20,37 +18,10 @@ func (c *client) cmdAdminAddScore(ctx *cli.Context) error {
 	score := api.AdminScorePost{}
 
 	if ctx.NArg() > 0 {
-		v := reflect.ValueOf(&score)
-
 		for _, arg := range ctx.Args() {
-			fields := strings.SplitN(arg, "=", 2)
-			if len(fields) != 2 {
-				return fmt.Errorf("Bad key=value input: %s", arg)
-			}
-
-			field := v.Elem().FieldByNameFunc(func(name string) bool {
-				if strings.ToLower(name) == strings.ToLower(fields[0]) {
-					return true
-				}
-
-				return false
-			})
-
-			if !field.IsValid() {
-				return fmt.Errorf("Invalid key: %s", fields[0])
-			}
-
-			if field.Type() == reflect.TypeOf("") {
-				field.SetString(fields[1])
-			} else if field.Type() == reflect.TypeOf(int64(0)) {
-				intValue, err := strconv.ParseInt(fields[1], 10, 64)
-				if err != nil {
-					return err
-				}
-
-				field.SetInt(intValue)
-			} else {
-				return fmt.Errorf("Unsupported type for key: %s", fields[0])
+			err := setStructKey(&score, arg)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -174,37 +145,10 @@ func (c *client) cmdAdminUpdateScore(ctx *cli.Context) error {
 	}
 
 	if ctx.NArg() > 1 {
-		v := reflect.ValueOf(&score)
-
 		for _, arg := range ctx.Args()[1:] {
-			fields := strings.SplitN(arg, "=", 2)
-			if len(fields) != 2 {
-				return fmt.Errorf("Bad key=value input: %s", arg)
-			}
-
-			field := v.Elem().FieldByNameFunc(func(name string) bool {
-				if strings.ToLower(name) == strings.ToLower(fields[0]) {
-					return true
-				}
-
-				return false
-			})
-
-			if !field.IsValid() {
-				return fmt.Errorf("Invalid key: %s", fields[0])
-			}
-
-			if field.Type() == reflect.TypeOf("") {
-				field.SetString(fields[1])
-			} else if field.Type() == reflect.TypeOf(int64(0)) {
-				intValue, err := strconv.ParseInt(fields[1], 10, 64)
-				if err != nil {
-					return err
-				}
-
-				field.SetInt(intValue)
-			} else {
-				return fmt.Errorf("Unsupported type for key: %s", fields[0])
+			err := setStructKey(&score, arg)
+			if err != nil {
+				return err
 			}
 		}
 	}
