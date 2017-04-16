@@ -160,8 +160,8 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 		return
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &newTeam, Type: "team-updated"})
-	logger.Info("Team updated", log15.Ctx{"id": team.ID, "name": newTeam.Name, "country": newTeam.Country, "website": newTeam.Website})
+	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &newRecord.TeamPut, Type: "team-updated"})
+	logger.Info("Team updated", log15.Ctx{"id": team.ID, "name": newRecord.Name, "country": newRecord.Country, "website": newRecord.Website})
 }
 
 func (r *rest) adminGetTeams(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
