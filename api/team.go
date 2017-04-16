@@ -30,8 +30,9 @@ type AdminTeam struct {
 type AdminTeamPut struct {
 	TeamPut `yaml:",inline"`
 
-	Notes   string `yaml:"notes" json:"notes"`
-	Subnets string `yaml:"subnets" json:"subnets"`
+	Notes   string            `yaml:"notes" json:"notes"`
+	Subnets string            `yaml:"subnets" json:"subnets"`
+	Tags    map[string]string `yaml:"tags" json:"tags"`
 }
 
 // AdminTeamPost represents the fields allowed when creating a new team

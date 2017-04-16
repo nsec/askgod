@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS team (
     country VARCHAR(2),
     website VARCHAR(255),
     notes VARCHAR,
-    subnets VARCHAR
+    subnets VARCHAR,
+    tags VARCHAR
 );
 
 CREATE TABLE IF NOT EXISTS score (

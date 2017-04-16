@@ -9,6 +9,7 @@ import (
 	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/nsec/askgod/api"
+	"github.com/nsec/askgod/internal/utils"
 )
 
 // GetTeams retrieves all the team entries from the database
@@ -17,7 +18,7 @@ func (db *DB) GetTeams() ([]api.AdminTeam, error) {
 	resp := []api.AdminTeam{}
 
 	// Query all the teams from the database
-	rows, err := db.Query("SELECT id, name, country, website, notes, subnets FROM team ORDER BY id ASC;")
+	rows, err := db.Query("SELECT id, name, country, website, notes, subnets, tags FROM team ORDER BY id ASC;")
 	if err != nil {
 		return nil, err
 	}
@@ -26,8 +27,14 @@ func (db *DB) GetTeams() ([]api.AdminTeam, error) {
 	// Iterate through the results
 	for rows.Next() {
 		row := api.AdminTeam{}
+		tags := ""
 
-		err := rows.Scan(&row.ID, &row.Name, &row.Country, &row.Website, &row.Notes, &row.Subnets)
+		err := rows.Scan(&row.ID, &row.Name, &row.Country, &row.Website, &row.Notes, &row.Subnets, &tags)
+		if err != nil {
+			return nil, err
+		}
+
+		row.Tags, err = utils.ParseTags(tags)
 		if err != nil {
 			return nil, err
 		}
@@ -48,8 +55,14 @@ func (db *DB) GetTeams() ([]api.AdminTeam, error) {
 func (db *DB) GetTeam(id int64) (*api.AdminTeam, error) {
 	// Query the database entry
 	row := api.AdminTeam{}
-	err := db.QueryRow("SELECT id, name, country, website, notes, subnets FROM team WHERE id=$1;", id).Scan(
-		&row.ID, &row.Name, &row.Country, &row.Website, &row.Notes, &row.Subnets)
+	tags := ""
+	err := db.QueryRow("SELECT id, name, country, website, notes, subnets, tags FROM team WHERE id=$1;", id).Scan(
+		&row.ID, &row.Name, &row.Country, &row.Website, &row.Notes, &row.Subnets, &tags)
+	if err != nil {
+		return nil, err
+	}
+
+	row.Tags, err = utils.ParseTags(tags)
 	if err != nil {
 		return nil, err
 	}
@@ -106,8 +119,8 @@ func (db *DB) CreateTeam(team api.AdminTeamPost) (int64, error) {
 	id := int64(-1)
 
 	// Create the database entry
-	err := db.QueryRow("INSERT INTO team (name, country, website, notes, subnets) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-		team.Name, team.Country, team.Website, team.Notes, team.Subnets).Scan(&id)
+	err := db.QueryRow("INSERT INTO team (name, country, website, notes, subnets, tags) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		team.Name, team.Country, team.Website, team.Notes, team.Subnets, utils.PackTags(team.Tags)).Scan(&id)
 	if err != nil {
 		return -1, err
 	}
@@ -118,8 +131,8 @@ func (db *DB) CreateTeam(team api.AdminTeamPost) (int64, error) {
 // UpdateTeam updates an existing team
 func (db *DB) UpdateTeam(id int64, team api.AdminTeamPut) error {
 	// Update the database entry
-	result, err := db.Exec("UPDATE team SET name=$1, country=$2, website=$3, notes=$4, subnets=$5 WHERE id=$6;",
-		team.Name, team.Country, team.Website, team.Notes, team.Subnets, id)
+	result, err := db.Exec("UPDATE team SET name=$1, country=$2, website=$3, notes=$4, subnets=$5, tags=$6 WHERE id=$7;",
+		team.Name, team.Country, team.Website, team.Notes, team.Subnets, utils.PackTags(team.Tags), id)
 	if err != nil {
 		return err
 	}
