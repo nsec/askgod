@@ -16,12 +16,12 @@ func (db *DB) GetScoreboard(team *api.AdminTeam) ([]api.ScoreboardEntry, error) 
 	var err error
 
 	if team == nil {
-		rows, err = db.Query("SELECT team.id, team.country, team.name, team.website, SUM(score.value) AS points, MAX(score.submit_time) FROM score LEFT JOIN team ON team.id=score.teamid GROUP BY team.id ORDER BY points DESC;")
+		rows, err = db.Query("SELECT team.id, team.country, team.name, team.website, COALESCE(SUM(score.value), 0) AS points, MAX(score.submit_time) FROM score RIGHT JOIN team ON team.id=score.teamid WHERE team.name != '' AND team.country != '' GROUP BY team.id ORDER BY points DESC;")
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		rows, err = db.Query("SELECT team.id, team.country, team.name, team.website, SUM(score.value) AS points, MAX(score.submit_time) FROM score LEFT JOIN team ON team.id=score.teamid WHERE team.id=$1 GROUP BY team.id ORDER BY points DESC;", team.ID)
+		rows, err = db.Query("SELECT team.id, team.country, team.name, team.website, COALESCE(SUM(score.value), 0) AS points, MAX(score.submit_time) FROM score RIGHT JOIN team ON team.id=score.teamid WHERE team.id=$1 AND team.name != '' AND team.country != '' GROUP BY team.id ORDER BY points DESC;", team.ID)
 		if err != nil {
 			return nil, err
 		}
