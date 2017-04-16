@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 
+	"github.com/lib/pq"
+
 	"github.com/nsec/askgod/api"
 )
 
@@ -32,10 +34,13 @@ func (db *DB) GetScoreboard(team *api.AdminTeam) ([]api.ScoreboardEntry, error) 
 	for rows.Next() {
 		row := api.ScoreboardEntry{}
 
-		err := rows.Scan(&row.Team.ID, &row.Team.Country, &row.Team.Name, &row.Team.Website, &row.Value, &row.LastSubmitTime)
+		submitTime := pq.NullTime{}
+		err := rows.Scan(&row.Team.ID, &row.Team.Country, &row.Team.Name, &row.Team.Website, &row.Value, &submitTime)
 		if err != nil {
 			return nil, err
 		}
+
+		row.LastSubmitTime = submitTime.Time
 
 		resp = append(resp, row)
 	}
