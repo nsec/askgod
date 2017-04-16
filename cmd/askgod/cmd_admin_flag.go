@@ -50,6 +50,14 @@ func (c *client) cmdAdminAddFlag(ctx *cli.Context) error {
 				}
 
 				field.SetInt(intValue)
+			} else if field.Type() == reflect.TypeOf(map[string]string{}) {
+				tags, err := utils.ParseTags(fields[1])
+				if err != nil {
+					return err
+				}
+
+				tagsValue := reflect.ValueOf(tags)
+				field.Set(tagsValue)
 			} else {
 				return fmt.Errorf("Unsupported type for key: %s", fields[0])
 			}
@@ -203,6 +211,14 @@ func (c *client) cmdAdminUpdateFlag(ctx *cli.Context) error {
 				}
 
 				field.SetInt(intValue)
+			} else if field.Type() == reflect.TypeOf(map[string]string{}) {
+				tags, err := utils.ParseTags(fields[1])
+				if err != nil {
+					return err
+				}
+
+				tagsValue := reflect.ValueOf(tags)
+				field.Set(tagsValue)
 			} else {
 				return fmt.Errorf("Unsupported type for key: %s", fields[0])
 			}
