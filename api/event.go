@@ -35,9 +35,8 @@ type EventFlag struct {
 
 // EventTimeline represents a change to the timeline (guest only)
 type EventTimeline struct {
-	Team  Team               `yaml:"team" json:"team"`
-	Score TimelineEntryScore `yaml:"score" json:"score"`
+	TeamID int64               `yaml:"teamid" json:"teamid"`
+	Team   *TeamPut            `yaml:"team" json:"team"`
+	Score  *TimelineEntryScore `yaml:"score" json:"score"`
+	Type   string              `yaml:"type" json:"type"`
 }
-
-// EventTeam represents a team change event entry (guest only)
-type EventTeam Team

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/inconshreveable/log15.v2"
@@ -180,7 +181,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
-	// Get all the flags for the team
+	// Submit the flag
 	result, adminFlag, err := r.db.SubmitTeamFlag(team.ID, flag)
 	if err == sql.ErrNoRows {
 		eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
@@ -197,7 +198,25 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		r.errorResponse(500, "Internal Server Error", writer, request)
 		return
 	}
+
+	// Send the flag notification
 	eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
+
+	// Send the timeline notification
+	total, err := r.db.GetTeamPoints(team.ID)
+	if err != nil {
+		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
+		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+		return
+	}
+
+	score := api.TimelineEntryScore{
+		SubmitTime: time.Now(),
+		Value:      result.Value,
+		Total:      total,
+	}
+
+	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Correct flag submitted", log15.Ctx{"teamid": team.ID, "flagid": result.ID, "value": result.Value, "flag": flag.Flag})
 	r.jsonResponse(result, writer, request)

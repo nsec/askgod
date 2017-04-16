@@ -45,11 +45,6 @@ Inner layer is api.EventTimeline
 
 This represents a change to the timeline (points granted or taken) and requires guest access.
 
-### "teams" type
-Inner layer is api.EventTeam
-
-This represents the addition of a new team or a change to its properties, it requires guest access.
-
 ### "logging" type
 Inner layer is api.EventLogging
 

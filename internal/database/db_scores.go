@@ -8,6 +8,19 @@ import (
 	"github.com/nsec/askgod/api"
 )
 
+// GetTeamPoints returns the current total for the team
+func (db *DB) GetTeamPoints(teamid int64) (int64, error) {
+	total := int64(0)
+
+	// Get the total
+	err := db.QueryRow("SELECT COALESCE(SUM(score.value), 0) AS points FROM score WHERE teamid=$1", teamid).Scan(&total)
+	if err != nil {
+		return -1, err
+	}
+
+	return total, nil
+}
+
 // GetTeamFlags retrieves all the score entries for the team
 func (db *DB) GetTeamFlags(teamid int64) ([]api.Flag, error) {
 	// Return a list of score entries

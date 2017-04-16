@@ -93,7 +93,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	eventTypes := strings.Split(typeStr, ",")
 	for _, entry := range eventTypes {
 		// Make sure that all types are valid
-		if !utils.StringInSlice(entry, []string{"timeline", "teams", "logging", "flags"}) {
+		if !utils.StringInSlice(entry, []string{"timeline", "logging", "flags"}) {
 			logger.Warn("Invalid event type", log15.Ctx{"type": entry})
 			r.errorResponse(400, "Invalid event type", writer, request)
 			return
