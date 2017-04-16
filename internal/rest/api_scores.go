@@ -58,7 +58,7 @@ func (r *rest) adminCreateScore(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Result: "valid"})
+	eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid"})
 
 	logger.Info("New score entry defined", log15.Ctx{"id": id, "flagid": newScore.FlagID, "teamid": newScore.TeamID, "value": newScore.Value})
 }

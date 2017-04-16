@@ -183,12 +183,12 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	// Get all the flags for the team
 	result, adminFlag, err := r.db.SubmitTeamFlag(team.ID, flag)
 	if err == sql.ErrNoRows {
-		eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Result: "invalid"})
+		eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
 		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "Invalid flag submitted", writer, request)
 		return
 	} else if err == os.ErrExist {
-		eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Result: "duplicate"})
+		eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
 		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "The flag was already submitted", writer, request)
 		return
@@ -197,7 +197,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		r.errorResponse(500, "Internal Server Error", writer, request)
 		return
 	}
-	eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Result: "valid"})
+	eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
 
 	logger.Info("Correct flag submitted", log15.Ctx{"teamid": team.ID, "flagid": result.ID, "value": result.Value, "flag": flag.Flag})
 	r.jsonResponse(result, writer, request)

@@ -28,9 +28,9 @@ type EventFlag struct {
 	Team AdminTeam  `yaml:"team" json:"team"`
 	Flag *AdminFlag `yaml:"flag" json:"flag"`
 
-	Input  string `yaml:"input" json:"input"`
-	Value  int64  `yaml:"value" json:"value"`
-	Result string `yaml:"result" json:"result"`
+	Input string `yaml:"input" json:"input"`
+	Value int64  `yaml:"value" json:"value"`
+	Type  string `yaml:"type" json:"type"`
 }
 
 // EventTimeline represents a change to the timeline (guest only)
