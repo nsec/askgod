@@ -1,6 +1,8 @@
 package database
 
 import (
+	"time"
+
 	"gopkg.in/inconshreveable/log15.v2"
 )
 
@@ -21,7 +23,7 @@ func (u *dbUpdate) apply(currentVersion int, db *DB, logger log15.Logger) error 
 		return err
 	}
 
-	_, err = db.Exec("INSERT INTO schema (version, updated_at) VALUES (?, strftime(\"%s\"));", u.version)
+	_, err = db.Exec("INSERT INTO schema (version, updated_at) VALUES ($1, $2);", u.version, time.Now())
 	if err != nil {
 		return err
 	}
