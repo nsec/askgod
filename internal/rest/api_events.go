@@ -300,7 +300,9 @@ func (r *rest) forwardEvents(peer string) {
 			eventsLock.Unlock()
 			r.logger.Info("Connected to cluster peer", log15.Ctx{"peer": peer})
 
+			i = 0
 			<-listener.active
+
 			r.logger.Warn("Lost connection with cluster peer", log15.Ctx{"peer": peer})
 		}
 
