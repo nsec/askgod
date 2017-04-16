@@ -14,6 +14,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/nsec/askgod/api"
+	"github.com/nsec/askgod/internal/utils"
 )
 
 func (c *client) cmdAdminAddFlag(ctx *cli.Context) error {
@@ -151,7 +152,7 @@ func (c *client) cmdAdminListFlags(ctx *cli.Context) error {
 			fmt.Sprintf("%d", entry.Value),
 			entry.ReturnString,
 			entry.Description,
-			entry.Tags,
+			utils.PackTags(entry.Tags),
 		})
 	}
 

@@ -41,11 +41,11 @@ type AdminFlag struct {
 
 // AdminFlagPut represents the editable fields of a score entry in the database
 type AdminFlagPut struct {
-	Flag         string `yaml:"flag" json:"flag"`
-	Value        int64  `yaml:"value" json:"value"`
-	ReturnString string `yaml:"return_string" json:"return_string"`
-	Description  string `yaml:"description" json:"description"`
-	Tags         string `yaml:"tags" json:"tags"`
+	Flag         string            `yaml:"flag" json:"flag"`
+	Value        int64             `yaml:"value" json:"value"`
+	ReturnString string            `yaml:"return_string" json:"return_string"`
+	Description  string            `yaml:"description" json:"description"`
+	Tags         map[string]string `yaml:"tags" json:"tags"`
 }
 
 // AdminFlagPost represents the fields allowed when creating a new score entry

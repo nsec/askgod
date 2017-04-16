@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	"github.com/nsec/askgod/api"
+	"github.com/nsec/askgod/internal/utils"
 )
 
 // GetFlags retrieves all the flag entries from the database
@@ -21,8 +22,14 @@ func (db *DB) GetFlags() ([]api.AdminFlag, error) {
 	// Iterate through the results
 	for rows.Next() {
 		row := api.AdminFlag{}
+		tags := ""
 
-		err := rows.Scan(&row.ID, &row.Flag, &row.Value, &row.ReturnString, &row.Description, &row.Tags)
+		err := rows.Scan(&row.ID, &row.Flag, &row.Value, &row.ReturnString, &row.Description, &tags)
+		if err != nil {
+			return nil, err
+		}
+
+		row.Tags, err = utils.ParseTags(tags)
 		if err != nil {
 			return nil, err
 		}
@@ -43,8 +50,15 @@ func (db *DB) GetFlags() ([]api.AdminFlag, error) {
 func (db *DB) GetFlag(id int64) (*api.AdminFlag, error) {
 	// Query the database entry
 	row := api.AdminFlag{}
+	tags := ""
+
 	err := db.QueryRow("SELECT id, flag, value, return_string, description, tags FROM flag WHERE id=$1;", id).Scan(
-		&row.ID, &row.Flag, &row.Value, &row.ReturnString, &row.Description, &row.Tags)
+		&row.ID, &row.Flag, &row.Value, &row.ReturnString, &row.Description, &tags)
+	if err != nil {
+		return nil, err
+	}
+
+	row.Tags, err = utils.ParseTags(tags)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +72,7 @@ func (db *DB) CreateFlag(flag api.AdminFlagPost) (int64, error) {
 
 	// Create the database entry
 	err := db.QueryRow("INSERT INTO flag (flag, value, return_string, description, tags) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-		flag.Flag, flag.Value, flag.ReturnString, flag.Description, flag.Tags).Scan(&id)
+		flag.Flag, flag.Value, flag.ReturnString, flag.Description, utils.PackTags(flag.Tags)).Scan(&id)
 	if err != nil {
 		return -1, err
 	}
@@ -70,7 +84,7 @@ func (db *DB) CreateFlag(flag api.AdminFlagPost) (int64, error) {
 func (db *DB) UpdateFlag(id int64, flag api.AdminFlagPut) error {
 	// Update the database entry
 	result, err := db.Exec("UPDATE flag SET flag=$1, value=$2, return_string=$3, description=$4, tags=$5 WHERE id=$6;",
-		flag.Flag, flag.Value, flag.ReturnString, flag.Description, flag.Tags, id)
+		flag.Flag, flag.Value, flag.ReturnString, flag.Description, utils.PackTags(flag.Tags), id)
 	if err != nil {
 		return err
 	}
