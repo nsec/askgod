@@ -14,6 +14,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/nsec/askgod/api"
+	"github.com/nsec/askgod/internal/utils"
 )
 
 func (c *client) cmdAdminAddTeam(ctx *cli.Context) error {
@@ -49,6 +50,14 @@ func (c *client) cmdAdminAddTeam(ctx *cli.Context) error {
 				}
 
 				field.SetInt(intValue)
+			} else if field.Type() == reflect.TypeOf(map[string]string{}) {
+				tags, err := utils.ParseTags(fields[1])
+				if err != nil {
+					return err
+				}
+
+				tagsValue := reflect.ValueOf(tags)
+				field.Set(tagsValue)
 			} else {
 				return fmt.Errorf("Unsupported type for key: %s", fields[0])
 			}
@@ -141,7 +150,7 @@ func (c *client) cmdAdminListTeams(ctx *cli.Context) error {
 	}
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Name", "Country", "Website", "Subnets", "Notes"})
+	table.SetHeader([]string{"ID", "Name", "Country", "Website", "Subnets", "Notes", "Tags"})
 	table.SetBorder(false)
 
 	for _, entry := range resp {
@@ -152,6 +161,7 @@ func (c *client) cmdAdminListTeams(ctx *cli.Context) error {
 			entry.Website,
 			entry.Subnets,
 			entry.Notes,
+			utils.PackTags(entry.Tags),
 		})
 	}
 
@@ -202,6 +212,14 @@ func (c *client) cmdAdminUpdateTeam(ctx *cli.Context) error {
 				}
 
 				field.SetInt(intValue)
+			} else if field.Type() == reflect.TypeOf(map[string]string{}) {
+				tags, err := utils.ParseTags(fields[1])
+				if err != nil {
+					return err
+				}
+
+				tagsValue := reflect.ValueOf(tags)
+				field.Set(tagsValue)
 			} else {
 				return fmt.Errorf("Unsupported type for key: %s", fields[0])
 			}
