@@ -112,7 +112,7 @@ func main() {
 					Action:   c.cmdAdminDeleteTeam,
 				},
 				{
-					Name:      "import-team",
+					Name:      "import-teams",
 					Usage:     "Import a list of teams",
 					ArgsUsage: "<filename>",
 					Category:  "teams",
