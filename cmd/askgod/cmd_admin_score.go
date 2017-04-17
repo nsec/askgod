@@ -84,11 +84,9 @@ func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
 	}
 
 	// Create the scores
-	for _, score := range scores {
-		err := c.queryStruct("POST", "/scores", score, nil)
-		if err != nil {
-			return err
-		}
+	err = c.queryStruct("POST", "/scores?bulk=1", scores, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil

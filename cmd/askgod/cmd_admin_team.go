@@ -71,11 +71,9 @@ func (c *client) cmdAdminImportTeams(ctx *cli.Context) error {
 	}
 
 	// Create the teams
-	for _, team := range teams {
-		err := c.queryStruct("POST", "/teams", team, nil)
-		if err != nil {
-			return err
-		}
+	err = c.queryStruct("POST", "/teams?bulk=1", teams, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil

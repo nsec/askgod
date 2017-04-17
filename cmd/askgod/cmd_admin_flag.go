@@ -85,11 +85,9 @@ func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
 	}
 
 	// Create the flags
-	for _, flag := range flags {
-		err := c.queryStruct("POST", "/flags", flag, nil)
-		if err != nil {
-			return err
-		}
+	err = c.queryStruct("POST", "/flags?bulk=1", flags, nil)
+	if err != nil {
+		return err
 	}
 
 	return nil
