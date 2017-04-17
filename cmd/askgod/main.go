@@ -190,6 +190,7 @@ func main() {
 		{
 			Name:   "history",
 			Usage:  "List all submitted flags",
+			ArgsUsage: "[<id> [key=value...]]",
 			Action: c.cmdHistory,
 		},
 
