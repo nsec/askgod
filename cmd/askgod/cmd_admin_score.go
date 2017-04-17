@@ -64,21 +64,13 @@ func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
 			return fmt.Errorf("User aborted flush operation")
 		}
 
-		scores := []api.AdminScore{}
-		err := c.queryStruct("GET", "/scores", nil, &scores)
+		err := c.queryStruct("DELETE", "/scores?empty=1", nil, nil)
 		if err != nil {
 			return err
 		}
-
-		for _, score := range scores {
-			err := c.queryStruct("DELETE", fmt.Sprintf("/scores/%d", score.ID), nil, nil)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
-	// Read th file
+	// Read the file
 	content, err := ioutil.ReadFile(ctx.Args().Get(0))
 	if err != nil {
 		return err

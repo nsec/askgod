@@ -51,21 +51,13 @@ func (c *client) cmdAdminImportTeams(ctx *cli.Context) error {
 			return fmt.Errorf("User aborted flush operation")
 		}
 
-		teams := []api.AdminTeam{}
-		err := c.queryStruct("GET", "/teams", nil, &teams)
+		err := c.queryStruct("DELETE", "/teams?empty=1", nil, nil)
 		if err != nil {
 			return err
 		}
-
-		for _, team := range teams {
-			err := c.queryStruct("DELETE", fmt.Sprintf("/teams/%d", team.ID), nil, nil)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
-	// Read th file
+	// Read the file
 	content, err := ioutil.ReadFile(ctx.Args().Get(0))
 	if err != nil {
 		return err

@@ -65,21 +65,13 @@ func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
 			return fmt.Errorf("User aborted flush operation")
 		}
 
-		flags := []api.AdminFlag{}
-		err := c.queryStruct("GET", "/flags", nil, &flags)
+		err := c.queryStruct("DELETE", "/flags?empty=1", nil, nil)
 		if err != nil {
 			return err
 		}
-
-		for _, flag := range flags {
-			err := c.queryStruct("DELETE", fmt.Sprintf("/flags/%d", flag.ID), nil, nil)
-			if err != nil {
-				return err
-			}
-		}
 	}
 
-	// Read th file
+	// Read the file
 	content, err := ioutil.ReadFile(ctx.Args().Get(0))
 	if err != nil {
 		return err
