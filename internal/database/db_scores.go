@@ -238,3 +238,34 @@ func (db *DB) DeleteScore(id int64) error {
 
 	return nil
 }
+
+// ClearScores wipes all score entries from the database
+func (db *DB) ClearScores() error {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Wipe the table
+	_, err = tx.Exec("DELETE FROM score;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Reset the sequence
+	_, err = tx.Exec("ALTER SEQUENCE score_id_seq RESTART;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

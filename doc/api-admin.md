@@ -39,6 +39,15 @@ The input is a JSON encoded version of api.AdminFlagPost (see api/flag.go).
 
 There is no expected output for this endpoint.
 
+## DELETE
+This is used to clear all flag entries from the database.
+
+There is no expected input for this endpoint.
+
+There is no expected output for this endpoint.
+
+An http parameter of ?empty=1 is required to prevent accidents.
+
 # /1.0/flags/{id}
 ## GET
 This returns a single flag record from the database.
@@ -72,6 +81,15 @@ The input is a JSON encoded version of api.AdminScorePost (see api/score.go).
 
 There is no expected output for this endpoint.
 
+## DELETE
+This is used to clear all score entries from the database.
+
+There is no expected input for this endpoint.
+
+There is no expected output for this endpoint.
+
+An http parameter of ?empty=1 is required to prevent accidents.
+
 # /1.0/score/{id}
 ## GET
 This returns a single score record from the database.
@@ -104,6 +122,15 @@ This is used to create a new team entry in the database.
 The input is a JSON encoded version of api.AdminTeamPost (see api/team.go).
 
 There is no expected output for this endpoint.
+
+## DELETE
+This is used to clear all team entries from the database.
+
+There is no expected input for this endpoint.
+
+There is no expected output for this endpoint.
+
+An http parameter of ?empty=1 is required to prevent accidents.
 
 # /1.0/teams/{id}
 ## GET

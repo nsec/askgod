@@ -286,3 +286,24 @@ func (r *rest) adminDeleteTeam(writer http.ResponseWriter, request *http.Request
 	eventSend("timeline", api.EventTimeline{TeamID: id, Type: "team-removed"})
 	logger.Info("Team deleted", log15.Ctx{"id": id})
 }
+
+func (r *rest) adminClearTeams(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	emptyVar := request.FormValue("empty")
+
+	// Confirm the user is sure about it
+	if emptyVar != "1" {
+		logger.Warn("Teams clear requested without empty=1")
+		r.errorResponse(400, "Teams clear requested without empty=1", writer, request)
+		return
+	}
+
+	// Clear the database entries
+	err := r.db.ClearTeams()
+	if err != nil {
+		logger.Error("Failed to clear all teams", log15.Ctx{"error": err})
+		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+		return
+	}
+
+	logger.Info("All teams deleted")
+}

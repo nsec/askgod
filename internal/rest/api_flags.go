@@ -341,3 +341,24 @@ func (r *rest) adminDeleteFlag(writer http.ResponseWriter, request *http.Request
 
 	logger.Info("Flag deleted", log15.Ctx{"id": id})
 }
+
+func (r *rest) adminClearFlags(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	emptyVar := request.FormValue("empty")
+
+	// Confirm the user is sure about it
+	if emptyVar != "1" {
+		logger.Warn("Flags clear requested without empty=1")
+		r.errorResponse(400, "Flags clear requested without empty=1", writer, request)
+		return
+	}
+
+	// Clear the database entries
+	err := r.db.ClearFlags()
+	if err != nil {
+		logger.Error("Failed to clear all flags", log15.Ctx{"error": err})
+		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+		return
+	}
+
+	logger.Info("All flags deleted")
+}

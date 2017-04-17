@@ -122,3 +122,34 @@ func (db *DB) DeleteFlag(id int64) error {
 
 	return nil
 }
+
+// ClearFlags wipes all flag entries from the database
+func (db *DB) ClearFlags() error {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Wipe the table
+	_, err = tx.Exec("DELETE FROM flag;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Reset the sequence
+	_, err = tx.Exec("ALTER SEQUENCE flag_id_seq RESTART;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

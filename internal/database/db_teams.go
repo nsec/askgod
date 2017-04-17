@@ -170,3 +170,34 @@ func (db *DB) DeleteTeam(id int64) error {
 
 	return nil
 }
+
+// ClearTeams wipes all team entries from the database
+func (db *DB) ClearTeams() error {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Wipe the table
+	_, err = tx.Exec("DELETE FROM team;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Reset the sequence
+	_, err = tx.Exec("ALTER SEQUENCE team_id_seq RESTART;")
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

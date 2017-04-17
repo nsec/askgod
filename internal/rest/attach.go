@@ -36,13 +36,13 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 	// Admin API
 	r.registerEndpoint("/1.0/config", "admin", r.getConfig, nil, nil, nil)
 
-	r.registerEndpoint("/1.0/flags", "admin", r.adminGetFlags, r.adminCreateFlag, nil, nil)
+	r.registerEndpoint("/1.0/flags", "admin", r.adminGetFlags, r.adminCreateFlag, nil, r.adminClearFlags)
 	r.registerEndpoint("/1.0/flags/{id}", "admin", r.adminGetFlag, nil, r.adminUpdateFlag, r.adminDeleteFlag)
 
-	r.registerEndpoint("/1.0/scores", "admin", r.adminGetScores, r.adminCreateScore, nil, nil)
+	r.registerEndpoint("/1.0/scores", "admin", r.adminGetScores, r.adminCreateScore, nil, r.adminClearScores)
 	r.registerEndpoint("/1.0/scores/{id}", "admin", r.adminGetScore, nil, r.adminUpdateScore, r.adminDeleteScore)
 
-	r.registerEndpoint("/1.0/teams", "admin", r.adminGetTeams, r.adminCreateTeam, nil, nil)
+	r.registerEndpoint("/1.0/teams", "admin", r.adminGetTeams, r.adminCreateTeam, nil, r.adminClearTeams)
 	r.registerEndpoint("/1.0/teams/{id}", "admin", r.adminGetTeam, nil, r.adminUpdateTeam, r.adminDeleteTeam)
 
 	// Setup forwarder
@@ -88,5 +88,6 @@ func (r *rest) registerEndpoint(url string, access string, funcGet, funcPost, fu
 
 		r.logger.Info("Bad request (not implemented)", log15.Ctx{"method": request.Method, "url": request.URL, "client": request.RemoteAddr})
 		r.errorResponse(501, "Not Implemented", writer, request)
+		return
 	})
 }

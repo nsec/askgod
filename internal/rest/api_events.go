@@ -41,6 +41,7 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 	if !r.isPeer(request) {
 		logger.Warn("Unauthorized attempt to send events")
 		r.errorResponse(403, "Forbidden", writer, request)
+		return
 	}
 
 	// Setup websocket

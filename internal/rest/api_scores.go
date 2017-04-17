@@ -255,3 +255,24 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 
 	logger.Info("Score entry deleted", log15.Ctx{"id": id})
 }
+
+func (r *rest) adminClearScores(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	emptyVar := request.FormValue("empty")
+
+	// Confirm the user is sure about it
+	if emptyVar != "1" {
+		logger.Warn("Scores clear requested without empty=1")
+		r.errorResponse(400, "Scores clear requested without empty=1", writer, request)
+		return
+	}
+
+	// Clear the database entries
+	err := r.db.ClearScores()
+	if err != nil {
+		logger.Error("Failed to clear all scores", log15.Ctx{"error": err})
+		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+		return
+	}
+
+	logger.Info("All scores deleted")
+}
