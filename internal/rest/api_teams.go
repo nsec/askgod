@@ -177,6 +177,13 @@ func (r *rest) adminGetTeams(writer http.ResponseWriter, request *http.Request, 
 }
 
 func (r *rest) adminCreateTeam(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	// Bulk create
+	bulkVar := request.FormValue("bulk")
+	if bulkVar == "1" {
+		r.adminCreateTeams(writer, request, logger)
+		return
+	}
+
 	// Decode the provided JSON input
 	newTeam := api.AdminTeamPost{}
 	err := json.NewDecoder(request.Body).Decode(&newTeam)
@@ -196,6 +203,30 @@ func (r *rest) adminCreateTeam(writer http.ResponseWriter, request *http.Request
 
 	eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.AdminTeamPut.TeamPut, Type: "team-added"})
 	logger.Info("New team defined", log15.Ctx{"id": id, "subnets": newTeam.Subnets})
+}
+
+func (r *rest) adminCreateTeams(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	// Decode the provided JSON input
+	newTeams := []api.AdminTeamPost{}
+	err := json.NewDecoder(request.Body).Decode(&newTeams)
+	if err != nil {
+		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
+		r.errorResponse(400, "Malformed JSON provided", writer, request)
+		return
+	}
+
+	for _, team := range newTeams {
+		// Attempt to create the database record
+		id, err := r.db.CreateTeam(team)
+		if err != nil {
+			logger.Error("Failed to create the team", log15.Ctx{"error": err})
+			r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+			return
+		}
+
+		eventSend("timeline", api.EventTimeline{TeamID: id, Team: &team.AdminTeamPut.TeamPut, Type: "team-added"})
+		logger.Info("New team defined", log15.Ctx{"id": id, "subnets": team.Subnets})
+	}
 }
 
 func (r *rest) adminGetTeam(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {

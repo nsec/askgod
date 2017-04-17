@@ -235,6 +235,13 @@ func (r *rest) adminGetFlags(writer http.ResponseWriter, request *http.Request, 
 }
 
 func (r *rest) adminCreateFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	// Bulk create
+	bulkVar := request.FormValue("bulk")
+	if bulkVar == "1" {
+		r.adminCreateFlags(writer, request, logger)
+		return
+	}
+
 	// Decode the provided JSON input
 	newFlag := api.AdminFlagPost{}
 	err := json.NewDecoder(request.Body).Decode(&newFlag)
@@ -253,6 +260,29 @@ func (r *rest) adminCreateFlag(writer http.ResponseWriter, request *http.Request
 	}
 
 	logger.Info("New flag defined", log15.Ctx{"id": id, "flag": newFlag.Flag, "value": newFlag.Value})
+}
+
+func (r *rest) adminCreateFlags(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+	// Decode the provided JSON input
+	newFlags := []api.AdminFlagPost{}
+	err := json.NewDecoder(request.Body).Decode(&newFlags)
+	if err != nil {
+		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
+		r.errorResponse(400, "Malformed JSON provided", writer, request)
+		return
+	}
+
+	for _, flag := range newFlags {
+		// Attempt to create the database record
+		id, err := r.db.CreateFlag(flag)
+		if err != nil {
+			logger.Error("Failed to create the flag", log15.Ctx{"error": err})
+			r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+			return
+		}
+
+		logger.Info("New flag defined", log15.Ctx{"id": id, "flag": flag.Flag, "value": flag.Value})
+	}
 }
 
 func (r *rest) adminGetFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
