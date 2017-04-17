@@ -188,10 +188,10 @@ func main() {
 		},
 
 		{
-			Name:   "history",
-			Usage:  "List all submitted flags",
+			Name:      "history",
+			Usage:     "List all submitted flags",
 			ArgsUsage: "[<id> [key=value...]]",
-			Action: c.cmdHistory,
+			Action:    c.cmdHistory,
 		},
 
 		{
