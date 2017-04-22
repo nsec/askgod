@@ -5,7 +5,6 @@ import (
 )
 
 type client struct {
-	http       *http.Client
-	server     string
-	realServer string
+	http   *http.Client
+	server string
 }

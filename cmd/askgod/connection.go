@@ -8,7 +8,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -112,35 +111,6 @@ func (c *client) setupClient() error {
 		}
 	} else {
 		return fmt.Errorf("Unsupported server URL: %s", c.server)
-	}
-
-	if c.realServer != "" {
-		transport.Dial = func(network string, addr string) (net.Conn, error) {
-			if c.realServer != "" {
-				u, err := url.ParseRequestURI(c.realServer)
-				if err != nil {
-					return nil, err
-				}
-
-				addr = u.Host
-			}
-
-			conn, err := net.Dial(network, addr)
-			if err != nil {
-				return nil, err
-			}
-
-			return conn, nil
-		}
-
-		transport.DialTLS = func(network string, addr string) (net.Conn, error) {
-			conn, err := transport.Dial(network, addr)
-			if err != nil {
-				return nil, err
-			}
-
-			return tls.Client(conn, transport.TLSClientConfig), nil
-		}
 	}
 
 	c.http = &http.Client{
