@@ -12,6 +12,7 @@ import (
 
 	"github.com/armon/go-proxyproto"
 	"github.com/gorilla/mux"
+	"github.com/lxc/lxd/shared/logging"
 	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/nsec/askgod/internal/config"
@@ -62,12 +63,12 @@ func (d *Daemon) Run() error {
 
 	// Setup the log handler
 	logHandlers := []log15.Handler{}
-	logHandlers = append(logHandlers, log15.StreamHandler(os.Stderr, log15.TerminalFormat()))
+	logHandlers = append(logHandlers, log15.StreamHandler(os.Stderr, logging.TerminalFormat()))
 
 	logHandlers = append(logHandlers, rest.EventsLogHandler{})
 
 	if d.config.Daemon.LogFile != "" {
-		logHandlers = append(logHandlers, log15.Must.FileHandler(d.config.Daemon.LogFile, log15.LogfmtFormat()))
+		logHandlers = append(logHandlers, log15.Must.FileHandler(d.config.Daemon.LogFile, logging.LogfmtFormat()))
 	}
 
 	logLevel := d.config.Daemon.LogLevel
