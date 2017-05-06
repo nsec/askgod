@@ -36,22 +36,11 @@ func (r *rest) jsonResponse(data interface{}, writer http.ResponseWriter, reques
 		http.Error(writer, "Internal Server Error", 500)
 		return
 	}
+
+	return
 }
 
 func (r *rest) errorResponse(code int, message string, writer http.ResponseWriter, request *http.Request) {
-	// Set the content type to JSON
-	writer.Header().Set("Content-Type", "application/json")
-
-	// Set status code
-	writer.WriteHeader(code)
-
 	// Writer the response
-	encoder := json.NewEncoder(writer)
-	encoder.SetIndent("", "\t")
-	err := encoder.Encode(map[string]string{"error": message})
-	if err != nil {
-		r.logger.Error("Failed to marshal response to JSON", log15.Ctx{"error": err})
-		http.Error(writer, "Internal Server Error", 500)
-		return
-	}
+	http.Error(writer, message, code)
 }
