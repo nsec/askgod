@@ -63,6 +63,12 @@ func (r *rest) registerEndpoint(url string, access string, funcGet, funcPost, fu
 		r.logger.Debug("Request received", log15.Ctx{"method": request.Method, "url": request.URL, "client": request.RemoteAddr})
 		logger := r.logger.New("method", request.Method, "url", request.URL, "client", request.RemoteAddr)
 
+		// Process OPTIONS
+		if request.Method == "OPTIONS" {
+			r.processOrigin(writer, request)
+			return
+		}
+
 		switch request.Method {
 		case "GET":
 			if funcGet != nil {

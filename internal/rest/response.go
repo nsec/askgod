@@ -17,6 +17,9 @@ func (r *rest) processOrigin(writer http.ResponseWriter, request *http.Request) 
 		} else if utils.StringInSlice("*", r.config.Daemon.AllowedOrigins) {
 			writer.Header().Set("Access-Control-Allow-Origin", "*")
 		}
+
+		writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	}
 }
 
