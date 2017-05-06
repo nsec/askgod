@@ -27,9 +27,6 @@ func (r *rest) jsonResponse(data interface{}, writer http.ResponseWriter, reques
 	// Set the content type to JSON
 	writer.Header().Set("Content-Type", "application/json")
 
-	// Process the Origin header
-	r.processOrigin(writer, request)
-
 	// Writer the response
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "\t")
@@ -44,11 +41,6 @@ func (r *rest) jsonResponse(data interface{}, writer http.ResponseWriter, reques
 }
 
 func (r *rest) errorResponse(code int, message string, writer http.ResponseWriter, request *http.Request) {
-	// Process the Origin header
-	r.processOrigin(writer, request)
-
 	// Writer the response
 	http.Error(writer, message, code)
-
-	return
 }
