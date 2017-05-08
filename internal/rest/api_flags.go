@@ -109,6 +109,13 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
+	// Validate the input
+	if len(flag.Notes) > 1000 {
+		logger.Warn("Note is too long")
+		r.errorResponse(400, "Note is too long", writer, request)
+		return
+	}
+
 	// Extract the client IP
 	ip, err := r.getIP(request)
 	if err != nil {
@@ -129,7 +136,7 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
-	// Get all the flags for the team
+	// Update the team flag
 	err = r.db.UpdateTeamFlag(team.ID, id, flag)
 	if err != nil {
 		logger.Error("Failed to update the flag", log15.Ctx{"error": err, "teamid": team.ID, "flagid": id})
@@ -151,6 +158,13 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+		return
+	}
+
+	// Validate the input
+	if len(flag.Notes) > 1000 {
+		logger.Warn("Note is too long")
+		r.errorResponse(400, "Note is too long", writer, request)
 		return
 	}
 
