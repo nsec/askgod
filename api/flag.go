@@ -9,9 +9,10 @@ import (
 
 // Flag represents a score entry as seen by the team
 type Flag struct {
-	FlagPost `yaml:",inline"`
+	FlagPut `yaml:",inline"`
 
 	ID           int64     `yaml:"id" json:"id"`
+	Description  string    `yaml:"description" json:"description"`
 	ReturnString string    `yaml:"return_string" json:"return_string"`
 	Value        int64     `yaml:"value" json:"value"`
 	SubmitTime   time.Time `yaml:"submit_time" json:"submit_time"`

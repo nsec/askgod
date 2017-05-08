@@ -47,13 +47,13 @@ func (c *client) cmdHistory(ctx *cli.Context) error {
 
 	const layout = "2006/01/02 15:04"
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Flag", "Value", "Timestamp", "Message", "Notes"})
+	table.SetHeader([]string{"ID", "Description", "Value", "Timestamp", "Message", "Notes"})
 	table.SetBorder(false)
 
 	for _, flag := range resp {
 		table.Append([]string{
 			fmt.Sprintf("%d", flag.ID),
-			flag.Flag,
+			flag.Description,
 			fmt.Sprintf("%d", flag.Value),
 			flag.SubmitTime.Local().Format(layout),
 			flag.ReturnString,

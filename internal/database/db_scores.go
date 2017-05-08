@@ -28,7 +28,7 @@ func (db *DB) GetTeamFlags(teamid int64) ([]api.Flag, error) {
 	resp := []api.Flag{}
 
 	// Query all the scores from the database
-	rows, err := db.Query("SELECT score.flagid, flag.flag, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 ORDER BY score.submit_time ASC;", teamid)
+	rows, err := db.Query("SELECT score.flagid, flag.description, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 ORDER BY score.submit_time ASC;", teamid)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (db *DB) GetTeamFlags(teamid int64) ([]api.Flag, error) {
 	for rows.Next() {
 		row := api.Flag{}
 
-		err := rows.Scan(&row.ID, &row.Flag, &row.Value, &row.Notes, &row.SubmitTime, &row.ReturnString)
+		err := rows.Scan(&row.ID, &row.Description, &row.Value, &row.Notes, &row.SubmitTime, &row.ReturnString)
 		if err != nil {
 			return nil, err
 		}
@@ -61,8 +61,8 @@ func (db *DB) GetTeamFlag(teamid int64, id int64) (*api.Flag, error) {
 	resp := api.Flag{}
 
 	// Query all the scores from the database
-	err := db.QueryRow("SELECT score.flagid, flag.flag, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 AND score.flagid=$2 ORDER BY score.submit_time ASC;", teamid, id).Scan(
-		&resp.ID, &resp.Flag, &resp.Value, &resp.Notes, &resp.SubmitTime, &resp.ReturnString)
+	err := db.QueryRow("SELECT score.flagid, flag.description, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 AND score.flagid=$2 ORDER BY score.submit_time ASC;", teamid, id).Scan(
+		&resp.ID, &resp.Description, &resp.Value, &resp.Notes, &resp.SubmitTime, &resp.ReturnString)
 	if err != nil {
 		return nil, err
 	}
@@ -127,8 +127,8 @@ func (db *DB) SubmitTeamFlag(teamid int64, flag api.FlagPost) (*api.Flag, *api.A
 
 	// Query the new entry
 	result := api.Flag{}
-	err = db.QueryRow("SELECT score.flagid, flag.flag, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.id=$1;", id).Scan(
-		&result.ID, &result.Flag, &result.Value, &result.Notes, &result.SubmitTime, &result.ReturnString)
+	err = db.QueryRow("SELECT score.flagid, flag.description, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.id=$1;", id).Scan(
+		&result.ID, &result.Description, &result.Value, &result.Notes, &result.SubmitTime, &result.ReturnString)
 	if err != nil {
 		return nil, nil, err
 	}
