@@ -105,6 +105,7 @@ func (c *client) cmdAdminListTeams(ctx *cli.Context) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Name", "Country", "Website", "Subnets", "Notes", "Tags"})
 	table.SetBorder(false)
+	table.SetAutoWrapText(false)
 
 	for _, entry := range resp {
 		table.Append([]string{

@@ -105,6 +105,7 @@ func (c *client) cmdAdminListFlags(ctx *cli.Context) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Flag", "Value", "Return string", "Description", "Tags"})
 	table.SetBorder(false)
+	table.SetAutoWrapText(false)
 
 	for _, entry := range resp {
 		table.Append([]string{

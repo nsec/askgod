@@ -40,6 +40,7 @@ func (c *client) cmdDetails(ctx *cli.Context) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetBorder(false)
 	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAutoWrapText(false)
 
 	val := func(in string) string {
 		if in == "" {

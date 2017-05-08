@@ -105,6 +105,7 @@ func (c *client) cmdAdminListScores(ctx *cli.Context) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "TeamID", "FlagID", "Value", "Submit time", "Notes"})
 	table.SetBorder(false)
+	table.SetAutoWrapText(false)
 
 	for _, entry := range resp {
 		table.Append([]string{

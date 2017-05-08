@@ -49,6 +49,7 @@ func (c *client) cmdHistory(ctx *cli.Context) error {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader([]string{"ID", "Description", "Value", "Timestamp", "Message", "Notes"})
 	table.SetBorder(false)
+	table.SetAutoWrapText(false)
 
 	for _, flag := range resp {
 		table.Append([]string{

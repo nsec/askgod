@@ -41,6 +41,7 @@ func (c *client) cmdScoreboard(ctx *cli.Context) error {
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"Team", "Points", "Last submit"})
 		table.SetBorder(false)
+		table.SetAutoWrapText(false)
 
 		for _, entry := range board {
 			lastSubmitTime := "never"

@@ -32,6 +32,7 @@ func (c *client) cmdTimeline(ctx *cli.Context) error {
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"Submit time", "Value", "Total"})
 		table.SetBorder(false)
+		table.SetAutoWrapText(false)
 
 		for _, score := range entry.Score {
 			table.Append([]string{
