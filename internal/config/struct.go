@@ -81,11 +81,22 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 						continue
 					}
 
-					logger.Info("Configuration file changed, reloading", log15.Ctx{"path": configPath})
+					// Store the old config for comparison
+					oldData, _ := yaml.Marshal(conf.Config)
+
+					// Parse the new ocnfig
 					err := parseConfig(configPath, conf.Config)
 					if err != nil {
 						logger.Error("Failed to read the new configuration", log15.Ctx{"path": configPath, "error": err})
 					}
+
+					// Check if something changed
+					newData, _ := yaml.Marshal(conf.Config)
+					if string(oldData) == string(newData) {
+						continue
+					}
+
+					logger.Info("Configuration file changed, reloading", log15.Ctx{"path": configPath})
 				case err := <-watcher.Error:
 					logger.Error("Got bad file notification", log15.Ctx{"error": err})
 				}
