@@ -91,8 +91,19 @@ func (c *client) cmdScoreboard(ctx *cli.Context) error {
 				}
 
 				// Ignore events we don't care about
-				if !utils.StringInSlice(entry.Type, []string{"team-updated", "team-removed", "score-updated"}) {
+				if !utils.StringInSlice(entry.Type, []string{"reload", "team-updated", "team-removed", "score-updated"}) {
 					continue
+				}
+
+				// Server requests a reload of the data
+				if entry.Type == "reload" {
+					// Get a new dump
+					board = []api.ScoreboardEntry{}
+					err = c.queryStruct("GET", "/scoreboard", nil, &board)
+					if err != nil {
+						close(chUpdate)
+						break
+					}
 				}
 
 				// Try to find the line
