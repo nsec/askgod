@@ -14,7 +14,7 @@ func (r *rest) getTimeline(writer http.ResponseWriter, request *http.Request, lo
 
 	if r.config.Scoring.HideOthers {
 		if !r.hasAccess("team", request) {
-			r.errorResponse(403, "Scoreboard is hidden", writer, request)
+			r.jsonResponse([]api.TimelineEntry{}, writer, request)
 			return
 		}
 

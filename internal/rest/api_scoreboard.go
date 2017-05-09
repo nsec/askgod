@@ -14,7 +14,7 @@ func (r *rest) getScoreboard(writer http.ResponseWriter, request *http.Request, 
 
 	if r.config.Scoring.HideOthers {
 		if !r.hasAccess("team", request) {
-			r.errorResponse(403, "Scoreboard is hidden", writer, request)
+			r.jsonResponse([]api.ScoreboardEntry{}, writer, request)
 			return
 		}
 
