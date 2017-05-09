@@ -34,6 +34,7 @@ type eventListener struct {
 	id      string
 	msgLock sync.Mutex
 	peer    bool
+	teamid  int64
 }
 
 func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
@@ -116,11 +117,32 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 		return
 	}
 
+	// Extract the client IP
+	ip, err := r.getIP(request)
+	if err != nil {
+		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
+		r.errorResponse(500, "Internal Server Error", writer, request)
+		return
+	}
+
+	// Get the team id
+	teamid := int64(0)
+
+	if r.hasAccess("admin", request) {
+		teamid = -1
+	} else {
+		team, err := r.db.GetTeamForIP(*ip)
+		if err == nil {
+			teamid = team.ID
+		}
+	}
+
 	// Prepare the listener
 	listener.active = make(chan bool, 1)
 	listener.connection = c
 	listener.id = uuid.NewRandom().String()
 	listener.messageTypes = eventTypes
+	listener.teamid = teamid
 
 	// Add it to the set
 	eventsLock.Lock()
@@ -294,6 +316,7 @@ func (r *rest) forwardEvents(peer string) {
 				active:     make(chan bool, 1),
 				id:         uuid.NewRandom().String(),
 				peer:       true,
+				teamid:     -1,
 			}
 
 			eventsLock.Lock()
