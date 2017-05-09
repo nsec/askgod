@@ -16,7 +16,14 @@ import (
 // Config represents the internal view of the configuration
 type Config struct {
 	*api.Config
-	logger log15.Logger
+	logger   log15.Logger
+	handlers []func(*Config)
+}
+
+// RegisterHandler makes it possible to register a function to be called on config changes
+func (c *Config) RegisterHandler(handler func(*Config)) error {
+	c.handlers = append(c.handlers, handler)
+	return nil
 }
 
 func parseConfig(configPath string, conf interface{}) error {
@@ -97,6 +104,9 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 					}
 
 					logger.Info("Configuration file changed, reloading", log15.Ctx{"path": configPath})
+					for _, handler := range conf.handlers {
+						handler(&conf)
+					}
 				case err := <-watcher.Error:
 					logger.Error("Got bad file notification", log15.Ctx{"error": err})
 				}

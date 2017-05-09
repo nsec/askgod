@@ -50,6 +50,12 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 		go r.forwardEvents(peer)
 	}
 
+	// Listen for config changes
+	err := config.RegisterHandler(r.configChanged)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

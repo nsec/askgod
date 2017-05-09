@@ -6,6 +6,7 @@ import (
 	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/nsec/askgod/api"
+	"github.com/nsec/askgod/internal/config"
 )
 
 func (r *rest) getConfig(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
@@ -23,4 +24,9 @@ func (r *rest) getConfig(writer http.ResponseWriter, request *http.Request, logg
 	}
 
 	r.jsonResponse(resp, writer, request)
+}
+
+func (r *rest) configChanged(conf *config.Config) {
+	eventSend("timeline", api.EventTimeline{Type: "reload"})
+	return
 }
