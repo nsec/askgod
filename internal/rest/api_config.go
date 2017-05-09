@@ -27,6 +27,6 @@ func (r *rest) getConfig(writer http.ResponseWriter, request *http.Request, logg
 }
 
 func (r *rest) configChanged(conf *config.Config) {
-	eventSend("timeline", api.EventTimeline{Type: "reload"})
+	r.eventSend("timeline", api.EventTimeline{Type: "reload"})
 	return
 }

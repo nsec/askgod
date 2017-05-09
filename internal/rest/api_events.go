@@ -67,7 +67,7 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 			continue
 		}
 
-		err = eventSendRaw(event)
+		err = r.eventSendRaw(event)
 		if err != nil {
 			logger.Error("Failed to relay event from peer", log15.Ctx{"error": err})
 			continue
@@ -161,7 +161,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	r.logger.Debug("Disconnected events listener", log15.Ctx{"uuid": listener.id})
 }
 
-func eventSend(eventType string, eventMessage interface{}) error {
+func (r *rest) eventSend(eventType string, eventMessage interface{}) error {
 	event := map[string]interface{}{}
 	event["type"] = eventType
 	event["timestamp"] = time.Now()
@@ -176,10 +176,10 @@ func eventSend(eventType string, eventMessage interface{}) error {
 	}
 	event["server"] = eventHostname
 
-	return eventSendRaw(event)
+	return r.eventSendRaw(event)
 }
 
-func eventSendRaw(event interface{}) error {
+func (r *rest) eventSendRaw(event interface{}) error {
 	body, err := json.Marshal(event)
 	if err != nil {
 		return err
@@ -340,10 +340,11 @@ type EventsLogHandler struct {
 }
 
 // Log send a log message through websocket
-func (h EventsLogHandler) Log(r *log15.Record) error {
-	eventSend("logging", api.EventLogging{
-		Message: r.Msg,
-		Level:   r.Lvl.String(),
-		Context: logContextMap(r.Ctx)})
+func (h EventsLogHandler) Log(rec *log15.Record) error {
+	r := rest{}
+	r.eventSend("logging", api.EventLogging{
+		Message: rec.Msg,
+		Level:   rec.Lvl.String(),
+		Context: logContextMap(rec.Ctx)})
 	return nil
 }

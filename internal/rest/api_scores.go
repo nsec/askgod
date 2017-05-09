@@ -88,7 +88,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 		return false
 	}
 
-	eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid"})
+	r.eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid"})
 
 	// Send the timeline notification
 	total, err := r.db.GetTeamPoints(newScore.TeamID)
@@ -104,7 +104,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 		Total:      total,
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("New score entry defined", log15.Ctx{"id": id, "flagid": newScore.FlagID, "teamid": newScore.TeamID, "value": newScore.Value})
 
@@ -211,7 +211,7 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 		Total:      totalAfter,
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Score entry updated", log15.Ctx{"id": id, "value": newScore.Value})
 }
@@ -281,7 +281,7 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 		Total:      totalAfter,
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Score entry deleted", log15.Ctx{"id": id})
 }

@@ -198,12 +198,12 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	// Submit the flag
 	result, adminFlag, err := r.db.SubmitTeamFlag(team.ID, flag)
 	if err == sql.ErrNoRows {
-		eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
+		r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
 		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "Invalid flag submitted", writer, request)
 		return
 	} else if err == os.ErrExist {
-		eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
+		r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
 		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "The flag was already submitted", writer, request)
 		return
@@ -214,7 +214,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// Send the flag notification
-	eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
+	r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
 
 	// Send the timeline notification
 	total, err := r.db.GetTeamPoints(team.ID)
@@ -230,7 +230,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		Total:      total,
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Correct flag submitted", log15.Ctx{"teamid": team.ID, "flagid": result.ID, "value": result.Value, "flag": flag.Flag})
 	r.jsonResponse(result, writer, request)

@@ -160,7 +160,7 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 		return
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &newRecord.TeamPut, Type: "team-updated"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &newRecord.TeamPut, Type: "team-updated"})
 	logger.Info("Team updated", log15.Ctx{"id": team.ID, "name": newRecord.Name, "country": newRecord.Country, "website": newRecord.Website})
 }
 
@@ -201,7 +201,7 @@ func (r *rest) adminCreateTeam(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.AdminTeamPut.TeamPut, Type: "team-added"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.AdminTeamPut.TeamPut, Type: "team-added"})
 	logger.Info("New team defined", log15.Ctx{"id": id, "subnets": newTeam.Subnets})
 }
 
@@ -224,7 +224,7 @@ func (r *rest) adminCreateTeams(writer http.ResponseWriter, request *http.Reques
 			return
 		}
 
-		eventSend("timeline", api.EventTimeline{TeamID: id, Team: &team.AdminTeamPut.TeamPut, Type: "team-added"})
+		r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &team.AdminTeamPut.TeamPut, Type: "team-added"})
 		logger.Info("New team defined", log15.Ctx{"id": id, "subnets": team.Subnets})
 	}
 }
@@ -287,7 +287,7 @@ func (r *rest) adminUpdateTeam(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.TeamPut, Type: "team-updated"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.TeamPut, Type: "team-updated"})
 	logger.Info("Team updated", log15.Ctx{"id": id, "name": newTeam.Name, "country": newTeam.Country, "website": newTeam.Website})
 }
 
@@ -314,7 +314,7 @@ func (r *rest) adminDeleteTeam(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	eventSend("timeline", api.EventTimeline{TeamID: id, Type: "team-removed"})
+	r.eventSend("timeline", api.EventTimeline{TeamID: id, Type: "team-removed"})
 	logger.Info("Team deleted", log15.Ctx{"id": id})
 }
 
