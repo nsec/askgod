@@ -179,8 +179,14 @@ func (r *rest) eventSend(eventType string, eventMessage interface{}) error {
 	return r.eventSendRaw(event)
 }
 
-func (r *rest) eventSendRaw(event interface{}) error {
-	body, err := json.Marshal(event)
+func (r *rest) eventSendRaw(raw interface{}) error {
+	body, err := json.Marshal(raw)
+	if err != nil {
+		return err
+	}
+
+	event := api.Event{}
+	err = json.Unmarshal(body, &event)
 	if err != nil {
 		return err
 	}
@@ -188,12 +194,28 @@ func (r *rest) eventSendRaw(event interface{}) error {
 	eventsLock.Lock()
 	listeners := eventListeners
 	for _, listener := range listeners {
-		if event.(map[string]interface{})["server"].(string) != eventHostname && listener.peer {
+		// Don't re-transmit cluster events
+		if event.Server != eventHostname && listener.peer {
 			continue
 		}
 
-		if listener.messageTypes != nil && !utils.StringInSlice(event.(map[string]interface{})["type"].(string), listener.messageTypes) {
+		// Only send the right event types
+		if listener.messageTypes != nil && !utils.StringInSlice(event.Type, listener.messageTypes) {
 			continue
+		}
+
+		// If a team message and hide_others is in effect, restrict broadcast
+		if event.Type == "timeline" && r.config.Scoring.HideOthers {
+			timeline := api.EventTimeline{}
+			err = json.Unmarshal(event.Metadata, &timeline)
+			if err != nil {
+				return err
+			}
+
+			// If a team-related message and listener is non-admin, require team to match
+			if timeline.TeamID > 0 && listener.teamid != -1 && timeline.TeamID != listener.teamid {
+				continue
+			}
 		}
 
 		go func(listener *eventListener, body []byte) {
