@@ -44,8 +44,9 @@ type ConfigScoring struct {
 
 // ConfigTeams represents the Daemon part of the Askgod configuration
 type ConfigTeams struct {
-	SelfRegister bool `yaml:"self_register" json:"self_register"`
-	SelfUpdate   bool `yaml:"self_update" json:"self_update"`
+	SelfRegister bool     `yaml:"self_register" json:"self_register"`
+	SelfUpdate   bool     `yaml:"self_update" json:"self_update"`
+	Hidden       []string `yaml:"hidden" json:"hidden"`
 }
 
 // ConfigSubnets represents the Daemon part of the Askgod configuration

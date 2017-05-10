@@ -63,6 +63,10 @@ teams:
   # The team can update its details at any time
   self_update: true
 
+  # List of team names to keep hidden (only be visible to themselves and admin)
+  hidden:
+    - NorthSec
+
 # Subnet restrictions
 subnets:
   # Admin API access

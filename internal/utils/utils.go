@@ -26,6 +26,16 @@ func StringInSlice(key string, list []string) bool {
 	return false
 }
 
+// Int64InSlice returns true if the provided int64 is in the provided slice
+func Int64InSlice(key int64, list []int64) bool {
+	for _, entry := range list {
+		if entry == key {
+			return true
+		}
+	}
+	return false
+}
+
 // ParseTags converts a serialized tags list to map[string]string
 func ParseTags(in string) (map[string]string, error) {
 	out := map[string]string{}

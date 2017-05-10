@@ -9,8 +9,9 @@ import (
 )
 
 type rest struct {
-	config *config.Config
-	db     *database.DB
-	logger log15.Logger
-	router *mux.Router
+	config      *config.Config
+	db          *database.DB
+	logger      log15.Logger
+	router      *mux.Router
+	hiddenTeams []int64
 }

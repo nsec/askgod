@@ -205,16 +205,21 @@ func (r *rest) eventSendRaw(raw interface{}) error {
 		}
 
 		// If a team message and hide_others is in effect, restrict broadcast
-		if event.Type == "timeline" && r.config.Scoring.HideOthers {
+		if event.Type == "timeline" {
 			timeline := api.EventTimeline{}
 			err = json.Unmarshal(event.Metadata, &timeline)
 			if err != nil {
 				return err
 			}
 
-			// If a team-related message and listener is non-admin, require team to match
 			if timeline.TeamID > 0 && listener.teamid != -1 && timeline.TeamID != listener.teamid {
-				continue
+				if r.config.Scoring.HideOthers {
+					continue
+				}
+
+				if utils.Int64InSlice(timeline.TeamID, r.hiddenTeams) {
+					continue
+				}
 			}
 		}
 

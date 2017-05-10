@@ -19,6 +19,12 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 		router: router,
 	}
 
+	// Update the list of hidden teams
+	err := r.configHiddenTeams()
+	if err != nil {
+		return err
+	}
+
 	// Guest API
 	r.registerEndpoint("/", "guest", r.getRoot, nil, nil, nil)
 	r.registerEndpoint("/1.0", "guest", r.getStatus, nil, nil, nil)
@@ -51,7 +57,7 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 	}
 
 	// Listen for config changes
-	err := config.RegisterHandler(r.configChanged)
+	err = config.RegisterHandler(r.configChanged)
 	if err != nil {
 		return err
 	}

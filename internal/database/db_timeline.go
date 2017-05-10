@@ -1,30 +1,18 @@
 package database
 
 import (
-	"database/sql"
-
 	"github.com/nsec/askgod/api"
 )
 
 // GetTimeline generates the current timeline
-func (db *DB) GetTimeline(team *api.AdminTeam) ([]api.TimelineEntry, error) {
+func (db *DB) GetTimeline() ([]api.TimelineEntry, error) {
 	// Return a list of score entries
 	resp := []api.TimelineEntry{}
 
 	// Query all the scores from the database
-	var rows *sql.Rows
-	var err error
-
-	if team == nil {
-		rows, err = db.Query("SELECT team.id, team.country, team.name, team.website, score.value, score.submit_time FROM score LEFT JOIN team ON team.id=score.teamid ORDER BY team.id ASC, score.submit_time ASC;")
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		rows, err = db.Query("SELECT team.id, team.country, team.name, team.website, score.value, score.submit_time FROM score LEFT JOIN team ON team.id=score.teamid WHERE team.id=$1 ORDER BY team.id ASC, score.submit_time ASC;", team.ID)
-		if err != nil {
-			return nil, err
-		}
+	rows, err := db.Query("SELECT team.id, team.country, team.name, team.website, score.value, score.submit_time FROM score LEFT JOIN team ON team.id=score.teamid ORDER BY team.id ASC, score.submit_time ASC;")
+	if err != nil {
+		return nil, err
 	}
 	defer rows.Close()
 
