@@ -1,0 +1,31 @@
+name: askgod
+version: git
+grade: stable
+summary: Askgod Scoring System - client
+description: |-
+ The Askgod Scoring System was written by the organizers of NorthSec.
+
+ It's designed for Capture The Flag (CTF) type events where a number of
+ teams compete on a leaderboard through points they score by sending
+ "flags" to the scoring system.
+
+ This package contains the client for the Askgod REST API and defaults
+ to interacting with the on-site instance of NorthSec.
+
+confinement: strict
+
+apps:
+  askgod:
+    command: askgod
+    plugs:
+     - network
+
+parts:
+  askgod-src:
+    source: .
+    plugin: go
+    go-packages:
+      - github.com/nsec/askgod/cmd/askgod
+    go-importpath: github.com/nsec/askgod
+    prime:
+      - bin/askgod
