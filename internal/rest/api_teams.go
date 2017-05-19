@@ -151,6 +151,7 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 	newRecord.Website = newTeam.Website
 	newRecord.Notes = team.Notes
 	newRecord.Subnets = team.Subnets
+	newRecord.Tags = team.Tags
 
 	// Attempt to update the database
 	err = r.db.UpdateTeam(team.ID, newRecord)
