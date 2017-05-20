@@ -97,7 +97,7 @@ func (db *DB) SubmitTeamFlag(teamid int64, flag api.FlagPost) (*api.Flag, *api.A
 	// Query the database entry
 	row := api.AdminFlag{}
 	tags := ""
-	err := db.QueryRow("SELECT id, flag, value, return_string, description, tags FROM flag WHERE flag=$1;", flag.Flag).Scan(
+	err := db.QueryRow("SELECT id, flag, value, return_string, description, tags FROM flag WHERE LOWER(flag)=LOWER($1);", flag.Flag).Scan(
 		&row.ID, &row.Flag, &row.Value, &row.ReturnString, &row.Description, &tags)
 	if err != nil {
 		return nil, nil, err
