@@ -108,15 +108,20 @@ func (c *client) cmdAdminMonitorFlags(ctx *cli.Context) error {
 			continue
 		}
 
+		team := fmt.Sprintf("id=%d", score.Team.ID)
+		if score.Team.Tags["infra"] != "" {
+			team = score.Team.Tags["infra"]
+		}
+
 		if score.Type == "valid" {
-			fmt.Printf("[%s][%s] Team \"%s\" (id=%d) scored %d points with \"%s\" (id=%d) (%s)\n",
-				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, score.Team.ID, score.Value, score.Input, score.Flag.ID, utils.PackTags(score.Flag.Tags))
+			fmt.Printf("[%s][%s] Team \"%s\" (%s) scored %d points with \"%s\" (id=%d) (%s)\n",
+				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Value, score.Input, score.Flag.ID, utils.PackTags(score.Flag.Tags))
 		} else if score.Type == "duplicate" {
-			fmt.Printf("[%s][%s] Team \"%s\" (id=%d) re-submitted \"%s\" (id=%d) (%s)\n",
-				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, score.Team.ID, score.Input, score.Flag.ID, utils.PackTags(score.Flag.Tags))
+			fmt.Printf("[%s][%s] Team \"%s\" (%s) re-submitted \"%s\" (id=%d) (%s)\n",
+				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Input, score.Flag.ID, utils.PackTags(score.Flag.Tags))
 		} else if score.Type == "invalid" {
-			fmt.Printf("[%s][%s] Team \"%s\" (id=%d) submitted invalid flag \"%s\"\n",
-				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, score.Team.ID, score.Input)
+			fmt.Printf("[%s][%s] Team \"%s\" (%s) submitted invalid flag \"%s\"\n",
+				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Input)
 		}
 	}
 
