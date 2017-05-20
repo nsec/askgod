@@ -86,7 +86,8 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 		return
 	}
 
-	if len(newTeam.Country) > 2 {
+	match, _ := regexp.MatchString("^[A-Z]*$", newTeam.Country)
+	if len(newTeam.Country) != 2 || !match {
 		logger.Warn("Bad team country code", log15.Ctx{"country": newTeam.Country})
 		r.errorResponse(400, "Bad team country code", writer, request)
 		return
