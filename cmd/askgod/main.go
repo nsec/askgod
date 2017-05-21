@@ -177,6 +177,12 @@ func main() {
 					Category:  "scores",
 					Action:    c.cmdAdminUpdateScore,
 				},
+				{
+					Name:     "history",
+					Usage:    "List the global flag history",
+					Category: "scores",
+					Action:   c.cmdAdminHistory,
+				},
 			},
 		},
 
