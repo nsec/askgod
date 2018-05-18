@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"gopkg.in/fsnotify.v0"
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/lxc/lxd/shared/log15"
 	"gopkg.in/yaml.v2"
 
 	"github.com/nsec/askgod/api"

@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/lxc/lxd/shared/log15"
 )
 
 // DB represents the Askgod database

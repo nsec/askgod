@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/lxc/lxd/shared/logging"
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/lxc/lxd/shared/log15"
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/nsec/askgod/api"

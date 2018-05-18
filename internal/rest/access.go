@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/lxc/lxd/shared/log15"
 )
 
 func (r *rest) getIP(request *http.Request) (*net.IP, error) {

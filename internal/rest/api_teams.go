@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/lxc/lxd/shared/log15"
 
 	"github.com/nsec/askgod/api"
 )

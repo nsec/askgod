@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/lxc/lxd/shared/log15"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"
