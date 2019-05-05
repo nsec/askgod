@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/urfave/cli.v1"
@@ -243,5 +244,9 @@ func main() {
 		return c.setupClient()
 	}
 
-	app.Run(os.Args)
+	err := app.Run(os.Args)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 }
