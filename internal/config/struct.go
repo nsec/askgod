@@ -5,8 +5,8 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"gopkg.in/fsnotify.v0"
 	"github.com/lxc/lxd/shared/log15"
+	"gopkg.in/fsnotify.v0"
 	"gopkg.in/yaml.v2"
 
 	"github.com/nsec/askgod/api"

@@ -15,8 +15,8 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/lxc/lxd/shared"
-	"github.com/pborman/uuid"
 	"github.com/lxc/lxd/shared/log15"
+	"github.com/pborman/uuid"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"

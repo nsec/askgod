@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/lxc/lxd/shared/logging"
 	"github.com/lxc/lxd/shared/log15"
+	"github.com/lxc/lxd/shared/logging"
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/nsec/askgod/api"
