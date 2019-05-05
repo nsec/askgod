@@ -61,7 +61,7 @@ func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
 		fmt.Printf("Flush all flags (yes/no): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
-		if strings.ToLower(input) != "yes" {
+		if strings.TrimSpace(strings.ToLower(input)) != "yes" {
 			return fmt.Errorf("User aborted flush operation")
 		}
 

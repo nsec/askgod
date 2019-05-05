@@ -60,7 +60,7 @@ func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
 		fmt.Printf("Flush all scores (yes/no): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
-		if strings.ToLower(input) != "yes" {
+		if strings.TrimSpace(strings.ToLower(input)) != "yes" {
 			return fmt.Errorf("User aborted flush operation")
 		}
 
