@@ -18,14 +18,15 @@ apps:
   askgod:
     command: askgod
     plugs:
-     - network
+      - network
 
 parts:
   go:
     source-tag: go1.12.4
 
   askgod-src:
-    after: go
+    after:
+      - go
     source: .
     plugin: go
     go-packages:
