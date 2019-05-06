@@ -21,7 +21,11 @@ apps:
      - network
 
 parts:
+  go:
+    source-tag: go1.12.4
+
   askgod-src:
+    after: go
     source: .
     plugin: go
     go-packages:
