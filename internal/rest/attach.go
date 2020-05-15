@@ -67,6 +67,8 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 
 func (r *rest) registerEndpoint(url string, access string, funcGet, funcPost, funcPut, funcDelete func(writer http.ResponseWriter, request *http.Request, logger log15.Logger)) {
 	r.router.HandleFunc(url, func(writer http.ResponseWriter, request *http.Request) {
+		metricRequests.Inc()
+
 		if !r.hasAccess(access, request) {
 			r.errorResponse(403, "Forbidden", writer, request)
 			return

@@ -190,6 +190,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 
 	// Check that the team is configured
 	if team.Name == "" || team.Country == "" {
+		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "unconfigured").Inc()
 		logger.Debug("Unconfigured team tried to submit flag", log15.Ctx{"teamid": team.ID})
 		r.errorResponse(400, "Team name and country are required to participate", writer, request)
 		return
@@ -198,20 +199,25 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	// Submit the flag
 	result, adminFlag, err := r.db.SubmitTeamFlag(team.ID, flag)
 	if err == sql.ErrNoRows {
+		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "invalid").Inc()
 		r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
 		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "Invalid flag submitted", writer, request)
 		return
 	} else if err == os.ErrExist {
+		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "duplicate").Inc()
 		r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
 		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "The flag was already submitted", writer, request)
 		return
 	} else if err != nil {
+		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "error").Inc()
 		logger.Error("Failed to submit the flag", log15.Ctx{"error": err, "teamid": team.ID})
 		r.errorResponse(500, "Internal Server Error", writer, request)
 		return
 	}
+
+	metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "valid").Inc()
 
 	// Send the flag notification
 	r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})

@@ -217,7 +217,6 @@ func (d *Daemon) Run() error {
 		}()
 	}
 
-
 	err = <-chServers
 	if err != nil {
 		return err
