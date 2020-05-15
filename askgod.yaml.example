@@ -12,6 +12,9 @@ daemon:
   # HTTPs port to bind
   https_port: 443
 
+  # Prometheus HTTP port to bind
+  prometheus_port: 8081
+
   # TLS certificate or file path
   https_certificate:
 

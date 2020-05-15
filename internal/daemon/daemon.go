@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/lxc/lxd/shared/log15"
 	"github.com/lxc/lxd/shared/logging"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	"github.com/nsec/askgod/internal/config"
 	"github.com/nsec/askgod/internal/database"
@@ -195,6 +196,27 @@ func (d *Daemon) Run() error {
 			}
 		}()
 	}
+
+	if d.config.Daemon.PrometheusPort > 0 {
+		// Prepare the TCP socket
+		socket, err := net.Listen("tcp", fmt.Sprintf(":%d", d.config.Daemon.PrometheusPort))
+		if err != nil {
+			return err
+		}
+
+		d.logger.Info("Binding Prometheus", log15.Ctx{"port": d.config.Daemon.PrometheusPort})
+		go func() {
+			router := mux.NewRouter()
+			router.Handle("/metrics", promhttp.Handler())
+
+			err := http.Serve(socket, router)
+			if err != nil {
+				chServers <- err
+				close(chServers)
+			}
+		}()
+	}
+
 
 	err = <-chServers
 	if err != nil {

@@ -21,6 +21,7 @@ type ConfigDaemon struct {
 	HTTPSPort        int      `yaml:"https_port" json:"https_port"`
 	HTTPSCertificate string   `yaml:"https_certificate" json:"https_certificate"`
 	HTTPSKey         string   `yaml:"https_key" json:"https_key"`
+	PrometheusPort   int      `yaml:"prometheus_port" json:"prometheus_port"`
 	LogLevel         string   `yaml:"log_level" json:"log_level"`
 	LogFile          string   `yaml:"log_file" json:"log_file"`
 }
