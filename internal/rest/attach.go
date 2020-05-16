@@ -1,7 +1,10 @@
 package rest
 
 import (
+	"net"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/lxc/lxd/shared/log15"
@@ -9,6 +12,8 @@ import (
 	"github.com/nsec/askgod/internal/config"
 	"github.com/nsec/askgod/internal/database"
 )
+
+var clusterPeers []string
 
 // AttachFunctions attaches all the REST API functions to the provided router
 func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB, logger log15.Logger) error {
@@ -53,6 +58,30 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 
 	// Setup forwarder
 	for _, peer := range config.Daemon.ClusterPeers {
+		u, err := url.ParseRequestURI(peer)
+		if err != nil {
+			r.logger.Error("Unable to parse peer address", log15.Ctx{"peer": peer, "error": err})
+			return err
+		}
+
+		host, _, err := net.SplitHostPort(u.Host)
+		if err != nil {
+			r.logger.Error("Unable to parse peer host", log15.Ctx{"peer": peer, "error": err})
+			return err
+		}
+
+		peerIP := net.ParseIP(strings.Trim(host, "[]"))
+		if peerIP != nil {
+			clusterPeers = append(clusterPeers, peerIP.String())
+		} else {
+			addr, err := net.LookupHost(host)
+			if err != nil {
+				r.logger.Error("Unable to resolve peer to addr", log15.Ctx{"peer": peer, "error": err})
+				return err
+			}
+			clusterPeers = append(clusterPeers, addr...)
+		}
+
 		go r.forwardEvents(peer)
 	}
 

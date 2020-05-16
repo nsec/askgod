@@ -3,10 +3,10 @@ package rest
 import (
 	"net"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/lxc/lxd/shared/log15"
+
+	"github.com/nsec/askgod/internal/utils"
 )
 
 func (r *rest) getIP(request *http.Request) (*net.IP, error) {
@@ -96,34 +96,5 @@ func (r *rest) isPeer(request *http.Request) bool {
 		return false
 	}
 
-	names, _ := net.LookupAddr(ip.String())
-
-	for _, peer := range r.config.Daemon.ClusterPeers {
-		u, err := url.ParseRequestURI(peer)
-		if err != nil {
-			r.logger.Error("Unable to parse peer address", log15.Ctx{"peer": peer, "error": err})
-			continue
-		}
-
-		host, _, err := net.SplitHostPort(u.Host)
-		if err != nil {
-			r.logger.Error("Unable to parse peer host", log15.Ctx{"peer": peer, "error": err})
-			continue
-		}
-
-		for _, name := range names {
-			if strings.ToLower(strings.TrimSuffix(name, ".")) == strings.ToLower(host) {
-				return true
-			}
-		}
-
-		peerIP := net.ParseIP(strings.Trim(u.Host, "[]"))
-		if peerIP != nil {
-			if peerIP.Equal(*ip) {
-				return true
-			}
-		}
-	}
-
-	return false
+	return utils.StringInSlice(ip.String(), clusterPeers)
 }
