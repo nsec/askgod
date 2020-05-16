@@ -1,4 +1,5 @@
 name: askgod
+base: core18
 version: git
 grade: stable
 summary: Askgod Scoring System - client
@@ -20,17 +21,20 @@ apps:
     plugs:
       - network
 
-parts:
-  go:
-    source-tag: go1.12.4
+  server:
+    command: askgod-server
+    plugs:
+      - network
+      - network-bind
 
-  askgod-src:
-    after:
-      - go
+parts:
+  askgod:
     source: .
     plugin: go
     go-packages:
       - github.com/nsec/askgod/cmd/askgod
+      - github.com/nsec/askgod/cmd/askgod-server
     go-importpath: github.com/nsec/askgod
     prime:
       - bin/askgod
+      - bin/askgod-server
