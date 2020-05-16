@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	"github.com/lxc/lxd/shared/log15"
 	"gopkg.in/fsnotify.v0"
@@ -90,6 +91,9 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 
 					// Store the old config for comparison
 					oldData, _ := yaml.Marshal(conf.Config)
+
+					// Wait for 1s for ownership changes
+					time.Sleep(time.Second)
 
 					// Parse the new ocnfig
 					err := parseConfig(configPath, conf.Config)
