@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"
@@ -19,7 +19,7 @@ func (c *client) cmdAdminAddFlag(ctx *cli.Context) error {
 	flag := api.AdminFlagPost{}
 
 	if ctx.NArg() > 0 {
-		for _, arg := range ctx.Args() {
+		for _, arg := range ctx.Args().Slice() {
 			err := setStructKey(&flag, arg)
 			if err != nil {
 				return err
@@ -136,7 +136,7 @@ func (c *client) cmdAdminUpdateFlag(ctx *cli.Context) error {
 	}
 
 	if ctx.NArg() > 1 {
-		for _, arg := range ctx.Args()[1:] {
+		for _, arg := range ctx.Args().Slice()[1:] {
 			err := setStructKey(&flag, arg)
 			if err != nil {
 				return err

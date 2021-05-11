@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
 )
@@ -20,7 +20,7 @@ func (c *client) cmdDetails(ctx *cli.Context) error {
 
 	// Process any field update
 	if ctx.NArg() > 0 {
-		for _, arg := range ctx.Args() {
+		for _, arg := range ctx.Args().Slice() {
 			err := setStructKey(&resp, arg)
 			if err != nil {
 				return err

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 )
 
 func main() {
@@ -18,21 +18,21 @@ func main() {
 	app.EnableBashCompletion = true
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
+		&cli.StringFlag{
 			Name:        "s,server",
-			EnvVar:      "ASKGOD_SERVER",
+			EnvVars:     []string{"ASKGOD_SERVER"},
 			Value:       "https://askgod.nsec",
 			Usage:       "URL of askgod server",
 			Destination: &c.server,
 		},
 	}
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:   "admin",
 			Usage:  "Admin functions",
 			Hidden: true,
-			Subcommands: []cli.Command{
+			Subcommands: []*cli.Command{
 				{
 					Name:     "config",
 					Usage:    "Show the server config",
@@ -44,7 +44,7 @@ func main() {
 					Usage:    "Show live log messages from the server",
 					Category: "server",
 					Flags: []cli.Flag{
-						cli.StringFlag{
+						&cli.StringFlag{
 							Name:  "l,loglevel",
 							Usage: "One of critical, error, warn, info or debug",
 							Value: "info",
@@ -79,7 +79,7 @@ func main() {
 					Category:  "flags",
 					Action:    c.cmdAdminImportFlags,
 					Flags: []cli.Flag{
-						cli.BoolFlag{
+						&cli.BoolFlag{
 							Name:  "flush",
 							Usage: "Remove all existings flags",
 						},
@@ -119,7 +119,7 @@ func main() {
 					Category:  "teams",
 					Action:    c.cmdAdminImportTeams,
 					Flags: []cli.Flag{
-						cli.BoolFlag{
+						&cli.BoolFlag{
 							Name:  "flush",
 							Usage: "Remove all existings teams",
 						},
@@ -159,7 +159,7 @@ func main() {
 					Category:  "scores",
 					Action:    c.cmdAdminImportScores,
 					Flags: []cli.Flag{
-						cli.BoolFlag{
+						&cli.BoolFlag{
 							Name:  "flush",
 							Usage: "Remove all existings scores",
 						},
@@ -212,7 +212,7 @@ func main() {
 			Name:  "scoreboard",
 			Usage: "Show the scoreboard",
 			Flags: []cli.Flag{
-				cli.BoolFlag{
+				&cli.BoolFlag{
 					Name:  "l,live",
 					Usage: "Keep updating the scoreboard as it changes",
 				},
@@ -225,7 +225,7 @@ func main() {
 			Usage:     "Submit a flag",
 			ArgsUsage: "<flag>",
 			Flags: []cli.Flag{
-				cli.StringFlag{
+				&cli.StringFlag{
 					Name:  "n,notes",
 					Usage: "Some notes to remind you of the flag",
 				},

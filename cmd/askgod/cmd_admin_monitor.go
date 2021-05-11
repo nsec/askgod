@@ -6,7 +6,7 @@ import (
 
 	"github.com/lxc/lxd/shared/log15"
 	"github.com/lxc/lxd/shared/logging"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"

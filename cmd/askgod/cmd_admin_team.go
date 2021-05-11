@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"
@@ -19,7 +19,7 @@ func (c *client) cmdAdminAddTeam(ctx *cli.Context) error {
 	team := api.AdminTeamPost{}
 
 	if ctx.NArg() > 0 {
-		for _, arg := range ctx.Args() {
+		for _, arg := range ctx.Args().Slice() {
 			err := setStructKey(&team, arg)
 			if err != nil {
 				return err
@@ -137,7 +137,7 @@ func (c *client) cmdAdminUpdateTeam(ctx *cli.Context) error {
 	}
 
 	if ctx.NArg() > 1 {
-		for _, arg := range ctx.Args()[1:] {
+		for _, arg := range ctx.Args().Slice()[1:] {
 			err := setStructKey(&team, arg)
 			if err != nil {
 				return err

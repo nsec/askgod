@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/olekukonko/tablewriter"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
 )
@@ -22,7 +22,7 @@ func (c *client) cmdHistory(ctx *cli.Context) error {
 		}
 
 		if ctx.NArg() > 1 {
-			for _, arg := range ctx.Args()[1:] {
+			for _, arg := range ctx.Args().Slice()[1:] {
 				err := setStructKey(&flag, arg)
 				if err != nil {
 					return err

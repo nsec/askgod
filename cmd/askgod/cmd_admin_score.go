@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
-	"gopkg.in/urfave/cli.v1"
+	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
 )
@@ -18,7 +18,7 @@ func (c *client) cmdAdminAddScore(ctx *cli.Context) error {
 	score := api.AdminScorePost{}
 
 	if ctx.NArg() > 0 {
-		for _, arg := range ctx.Args() {
+		for _, arg := range ctx.Args().Slice() {
 			err := setStructKey(&score, arg)
 			if err != nil {
 				return err
@@ -136,7 +136,7 @@ func (c *client) cmdAdminUpdateScore(ctx *cli.Context) error {
 	}
 
 	if ctx.NArg() > 1 {
-		for _, arg := range ctx.Args()[1:] {
+		for _, arg := range ctx.Args().Slice()[1:] {
 			err := setStructKey(&score, arg)
 			if err != nil {
 				return err
