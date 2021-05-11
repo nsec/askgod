@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/lxc/lxd/shared/log15"
-	"gopkg.in/fsnotify.v0"
 	"gopkg.in/yaml.v2"
 
 	"github.com/nsec/askgod/api"
@@ -66,7 +66,7 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 			return nil, fmt.Errorf("Unable to setup fsnotify: %v", err)
 		}
 
-		err = watcher.Watch(filepath.Dir(configPath))
+		err = watcher.Add(filepath.Dir(configPath))
 		if err != nil {
 			return nil, fmt.Errorf("Unable to setup fsnotify watch: %v", err)
 		}
@@ -80,12 +80,8 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 		go func() {
 			for {
 				select {
-				case ev := <-watcher.Event:
+				case ev := <-watcher.Events:
 					if ev.Name != fmt.Sprintf("%s/%s", pathDir, pathBase) {
-						continue
-					}
-
-					if !ev.IsModify() || ev.IsAttrib() {
 						continue
 					}
 
@@ -111,7 +107,7 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 					for _, handler := range conf.handlers {
 						handler(&conf)
 					}
-				case err := <-watcher.Error:
+				case err := <-watcher.Errors:
 					logger.Error("Got bad file notification", log15.Ctx{"error": err})
 				}
 			}
