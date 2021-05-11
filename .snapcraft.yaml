@@ -1,5 +1,5 @@
 name: askgod
-base: core18
+base: core20
 version: git
 grade: stable
 summary: Askgod Scoring System - client
@@ -13,16 +13,20 @@ description: |-
  This package contains the client for the Askgod REST API and defaults
  to interacting with the on-site instance of NorthSec.
 
+ The package also contains the server but ships in disabled mode by default.
+
 confinement: strict
 
 apps:
   askgod:
-    command: askgod
+    command: bin/askgod
     plugs:
       - network
 
   server:
-    command: askgod-server
+    command: bin/askgod-server $SNAP_COMMON/config.yaml
+    daemon: simple
+    install-mode: disable
     plugs:
       - network
       - network-bind
@@ -31,10 +35,6 @@ parts:
   askgod:
     source: .
     plugin: go
-    go-packages:
-      - github.com/nsec/askgod/cmd/askgod
-      - github.com/nsec/askgod/cmd/askgod-server
-    go-importpath: github.com/nsec/askgod
     prime:
       - bin/askgod
       - bin/askgod-server
