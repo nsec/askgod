@@ -30,8 +30,16 @@ apps:
     plugs:
       - network
 
+  discourse:
+    command: bin/askgod-discourse $SNAP_COMMON/discourse.yaml
+    daemon: simple
+    install-mode: disable
+    plugs:
+      - network
+      - network-bind
+
   server:
-    command: bin/askgod-server $SNAP_COMMON/config.yaml
+    command: bin/askgod-server $SNAP_COMMON/server.yaml
     daemon: simple
     install-mode: disable
     plugs:
@@ -45,3 +53,11 @@ parts:
     prime:
       - bin/askgod
       - bin/askgod-server
+
+  askgod-discourse:
+    source: https://github.com/nsec/askgod-discourse
+    source-type: git
+    source-depth: 1
+    plugin: go
+    prime:
+      - bin/askgod-discourse
