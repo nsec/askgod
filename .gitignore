@@ -1,4 +1,5 @@
 *.swp
 askgod.yaml
 askgod.log
+config.yaml
 bin
