@@ -19,7 +19,7 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		&cli.StringFlag{
-			Name:        "s,server",
+			Name:        "server",
 			EnvVars:     []string{"ASKGOD_SERVER"},
 			Value:       "https://askgod.nsec",
 			Usage:       "URL of askgod server",
@@ -46,7 +46,7 @@ func main() {
 					Category: "server",
 					Flags: []cli.Flag{
 						&cli.StringFlag{
-							Name:  "l,loglevel",
+							Name:  "loglevel",
 							Usage: "One of critical, error, warn, info or debug",
 							Value: "info",
 						},
@@ -214,7 +214,7 @@ func main() {
 			Usage: "Show the scoreboard",
 			Flags: []cli.Flag{
 				&cli.BoolFlag{
-					Name:  "l,live",
+					Name:  "live",
 					Usage: "Keep updating the scoreboard as it changes",
 				},
 			},
@@ -227,7 +227,7 @@ func main() {
 			ArgsUsage: "<flag>",
 			Flags: []cli.Flag{
 				&cli.StringFlag{
-					Name:  "n,notes",
+					Name:  "notes",
 					Usage: "Some notes to remind you of the flag",
 				},
 			},
