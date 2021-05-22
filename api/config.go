@@ -5,11 +5,16 @@ package api
 
 // Config represents the Askgod configuration
 type Config struct {
-	Daemon   ConfigDaemon   `yaml:"daemon" json:"daemon"`
-	Database ConfigDatabase `yaml:"database" json:"database"`
-	Scoring  ConfigScoring  `yaml:"scoring" json:"scoring"`
-	Teams    ConfigTeams    `yaml:"teams" json:"teams"`
-	Subnets  ConfigSubnets  `yaml:"subnets" json:"subnets"`
+	ConfigPut `yaml:",inline"`
+	Daemon    ConfigDaemon   `yaml:"daemon" json:"daemon"`
+	Database  ConfigDatabase `yaml:"database" json:"database"`
+}
+
+// ConfigPut represents the editable Askgod configuration
+type ConfigPut struct {
+	Scoring ConfigScoring `yaml:"scoring" json:"scoring"`
+	Teams   ConfigTeams   `yaml:"teams" json:"teams"`
+	Subnets ConfigSubnets `yaml:"subnets" json:"subnets"`
 }
 
 // ConfigDaemon represents the Daemon part of the Askgod configuration

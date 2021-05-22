@@ -45,7 +45,7 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 	r.registerEndpoint("/1.0/team/flags/{id}", "team", r.getTeamFlag, nil, r.updateTeamFlag, nil)
 
 	// Admin API
-	r.registerEndpoint("/1.0/config", "admin", r.getConfig, nil, nil, nil)
+	r.registerEndpoint("/1.0/config", "admin", r.getConfig, nil, r.updateConfig, nil)
 
 	r.registerEndpoint("/1.0/flags", "admin", r.adminGetFlags, r.adminCreateFlag, nil, r.adminClearFlags)
 	r.registerEndpoint("/1.0/flags/{id}", "admin", r.adminGetFlag, nil, r.adminUpdateFlag, r.adminDeleteFlag)
@@ -83,12 +83,6 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 		}
 
 		go r.forwardEvents(peer)
-	}
-
-	// Listen for config changes
-	err = config.RegisterHandler(r.configChanged)
-	if err != nil {
-		return err
 	}
 
 	return nil

@@ -8,6 +8,7 @@ import (
 
 var dbUpdates = []dbUpdate{
 	{version: 1, run: dbUpdateFromV0},
+	{version: 2, run: dbUpdateFromV1},
 }
 
 type dbUpdate struct {
@@ -33,5 +34,17 @@ func (u *dbUpdate) apply(currentVersion int, db *DB, logger log15.Logger) error 
 
 func dbUpdateFromV0(currentVersion int, version int, db *DB) error {
 	_, err := db.Exec("ALTER TABLE team ADD COLUMN tags VARCHAR;")
+	return err
+}
+
+func dbUpdateFromV1(currentVersion int, version int, db *DB) error {
+	_, err := db.Exec(`
+CREATE TABLE IF NOT EXISTS config (
+    id SERIAL PRIMARY KEY,
+    key VARCHAR(255) NOT NULL,
+    value VARCHAR NOT NULL,
+    UNIQUE(key)
+);
+	`)
 	return err
 }

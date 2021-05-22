@@ -40,3 +40,8 @@ type EventTimeline struct {
 	Score  *TimelineEntryScore `yaml:"score" json:"score"`
 	Type   string              `yaml:"type" json:"type"`
 }
+
+// EventInternal represents an internal syncronisation event
+type EventInternal struct {
+	Type string `yaml:"type" json:"type"`
+}

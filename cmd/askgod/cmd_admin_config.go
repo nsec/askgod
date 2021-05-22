@@ -18,6 +18,24 @@ func (c *client) cmdAdminConfig(ctx *cli.Context) error {
 		return err
 	}
 
+	// Process any field update
+	if ctx.NArg() > 0 {
+		for _, arg := range ctx.Args().Slice() {
+			err := setStructKey(&resp, arg)
+			if err != nil {
+				return err
+			}
+		}
+
+		// Update the team
+		err = c.queryStruct("PUT", "/config", resp.ConfigPut, nil)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
 	data, err := yaml.Marshal(&resp)
 	if err != nil {
 		return err

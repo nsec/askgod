@@ -99,6 +99,14 @@ func (d *Daemon) Run() error {
 
 	d.db = db
 
+	// Load the rest of the config
+	dbConf, err := d.db.GetConfig()
+	if err != nil {
+		return err
+	}
+
+	d.config.Config.ConfigPut = *dbConf
+
 	// Setup the REST API
 	d.router = mux.NewRouter()
 	err = rest.AttachFunctions(

@@ -34,10 +34,11 @@ func main() {
 			Hidden: true,
 			Subcommands: []*cli.Command{
 				{
-					Name:     "config",
-					Usage:    "Show the server config",
-					Category: "server",
-					Action:   c.cmdAdminConfig,
+					Name:      "config",
+					ArgsUsage: "[key=value...]",
+					Usage:     "Show and update the server config",
+					Category:  "server",
+					Action:    c.cmdAdminConfig,
 				},
 				{
 					Name:     "monitor-log",

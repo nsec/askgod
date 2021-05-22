@@ -60,14 +60,34 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 			break
 		}
 
-		var event interface{}
-		err = json.Unmarshal(data, &event)
+		var rawEvent interface{}
+		err = json.Unmarshal(data, &rawEvent)
 		if err != nil {
 			logger.Error("Received a broken event from peer", log15.Ctx{"error": err})
 			continue
 		}
 
-		err = r.eventSendRaw(event)
+		// Handle config reloads
+		var apiEvent api.Event
+		err = json.Unmarshal(data, &apiEvent)
+		if err == nil && apiEvent.Type == "internal" {
+			conf, err := r.db.GetConfig()
+			if err != nil {
+				logger.Error("Failed to get new configuration", log15.Ctx{"error": err})
+				continue
+			}
+
+			// Save old config
+			oldConfig := r.config.Config.ConfigPut
+			newConfig := conf
+
+			r.config.Config.ConfigPut = *newConfig
+			logger.Info("Config updated", log15.Ctx{"old": oldConfig, "new": newConfig})
+			r.configHiddenTeams()
+			continue
+		}
+
+		err = r.eventSendRaw(rawEvent)
 		if err != nil {
 			logger.Error("Failed to relay event from peer", log15.Ctx{"error": err})
 			continue
