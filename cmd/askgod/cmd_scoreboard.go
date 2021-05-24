@@ -14,22 +14,22 @@ import (
 )
 
 // Sorting
-type byPointsAndID []api.ScoreboardEntry
+type byPointsAndLastSubmitTime []api.ScoreboardEntry
 
-func (a byPointsAndID) Len() int {
+func (a byPointsAndLastSubmitTime) Len() int {
 	return len(a)
 }
 
-func (a byPointsAndID) Swap(i, j int) {
+func (a byPointsAndLastSubmitTime) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-func (a byPointsAndID) Less(i, j int) bool {
+func (a byPointsAndLastSubmitTime) Less(i, j int) bool {
 	if a[i].Value != a[j].Value {
 		return a[i].Value > a[j].Value
 	}
 
-	return a[i].Team.ID < a[j].Team.ID
+	return a[i].LastSubmitTime.Before(a[j].LastSubmitTime)
 }
 
 func (c *client) cmdScoreboard(ctx *cli.Context) error {
@@ -153,7 +153,7 @@ func (c *client) cmdScoreboard(ctx *cli.Context) error {
 				}
 
 				// Sort the updated board ourselves
-				sort.Sort(byPointsAndID(board))
+				sort.Sort(byPointsAndLastSubmitTime(board))
 
 				chUpdate <- true
 			}
@@ -185,6 +185,8 @@ func (c *client) cmdScoreboard(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
+
+		sort.Sort(byPointsAndLastSubmitTime(board))
 
 		drawTable(board)
 	}
