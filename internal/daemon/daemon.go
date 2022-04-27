@@ -171,12 +171,7 @@ func (d *Daemon) Run() error {
 		// Setup a strict TLS config
 		tlsConfig := &tls.Config{
 			Certificates: []tls.Certificate{x509},
-			MinVersion:   tls.VersionTLS12,
-			MaxVersion:   tls.VersionTLS12,
-			CipherSuites: []uint16{
-				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-				tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA},
-			PreferServerCipherSuites: true,
+			MinVersion:   tls.VersionTLS13,
 		}
 		tlsConfig.BuildNameToCertificate()
 

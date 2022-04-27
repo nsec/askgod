@@ -287,14 +287,7 @@ func (r *rest) forwardEvents(peer string) {
 	}
 
 	tlsConfig := &tls.Config{
-		MinVersion: tls.VersionTLS12,
-		MaxVersion: tls.VersionTLS12,
-		CipherSuites: []uint16{
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
-			tls.TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA},
-		PreferServerCipherSuites: true,
+		MinVersion: tls.VersionTLS13,
 	}
 
 	if r.config.Daemon.HTTPSCertificate != "" {
