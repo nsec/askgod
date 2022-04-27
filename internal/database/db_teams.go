@@ -6,7 +6,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/lxc/lxd/shared/log15"
+	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"

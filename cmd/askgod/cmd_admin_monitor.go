@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/lxc/lxd/shared/log15"
-	"github.com/lxc/lxd/shared/logging"
+	"github.com/inconshreveable/log15"
 	"github.com/urfave/cli/v2"
 
 	"github.com/nsec/askgod/api"
@@ -70,7 +69,7 @@ func (c *client) cmdAdminMonitorLog(ctx *cli.Context) error {
 			Ctx:  ctx,
 		}
 
-		format := logging.TerminalFormat()
+		format := log15.TerminalFormat()
 		fmt.Printf("[%s] %s", event.Server, format.Format(&record))
 	}
 

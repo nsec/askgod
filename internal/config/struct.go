@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/lxc/lxd/shared/log15"
+	"github.com/inconshreveable/log15"
 	"gopkg.in/yaml.v2"
 
 	"github.com/nsec/askgod/api"

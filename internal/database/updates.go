@@ -3,7 +3,7 @@ package database
 import (
 	"time"
 
-	"github.com/lxc/lxd/shared/log15"
+	"github.com/inconshreveable/log15"
 )
 
 var dbUpdates = []dbUpdate{

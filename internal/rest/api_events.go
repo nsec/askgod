@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/inconshreveable/log15"
 	"github.com/lxc/lxd/shared"
-	"github.com/lxc/lxd/shared/log15"
 	"github.com/pborman/uuid"
 
 	"github.com/nsec/askgod/api"

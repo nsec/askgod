@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/lxc/lxd/shared/log15"
+	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/internal/config"
 	"github.com/nsec/askgod/internal/database"

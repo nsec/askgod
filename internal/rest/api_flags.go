@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/lxc/lxd/shared/log15"
+	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/api"
 )

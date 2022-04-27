@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/lxc/lxd/shared/log15"
+	"github.com/inconshreveable/log15"
 
 	// Import the postgres DB driver
 	_ "github.com/lib/pq"
