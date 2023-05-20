@@ -1,5 +1,5 @@
 name: askgod
-base: core20
+base: core22
 version: git
 grade: stable
 summary: Askgod Scoring System - client
@@ -50,6 +50,8 @@ parts:
   askgod:
     source: .
     plugin: go
+    build-snaps:
+      - go
     prime:
       - bin/askgod
       - bin/askgod-server
