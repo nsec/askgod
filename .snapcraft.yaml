@@ -34,6 +34,8 @@ apps:
     command: bin/askgod-discourse $SNAP_COMMON/discourse.yaml
     daemon: simple
     install-mode: disable
+    restart-condition: always
+    restart-delay: 5s
     plugs:
       - network
       - network-bind
@@ -42,6 +44,8 @@ apps:
     command: bin/askgod-server $SNAP_COMMON/server.yaml
     daemon: simple
     install-mode: disable
+    restart-condition: always
+    restart-delay: 5s
     plugs:
       - network
       - network-bind
