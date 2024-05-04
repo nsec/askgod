@@ -49,9 +49,12 @@ macos-client-arm:
 	GOOS=darwin GOARCH=arm64 go get -d -v -x ./cmd/askgod
 	cd bin/macos-arm ; CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build ../../cmd/askgod
 
-check:
+update-gomod:
 	go get -t -v -d -u ./...
-	go mod tidy
+	go mod tidy --go=1.21
+	go get toolchain@none
+
+check:
 	golint ./...
 	go vet ./...
 	go fmt ./...
