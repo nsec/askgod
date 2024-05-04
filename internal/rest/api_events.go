@@ -15,7 +15,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/inconshreveable/log15"
-	"github.com/lxc/lxd/shared"
+	"github.com/lxc/incus/v6/shared/ws"
 	"github.com/pborman/uuid"
 
 	"github.com/nsec/askgod/api"
@@ -46,7 +46,7 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 	}
 
 	// Setup websocket
-	conn, err := shared.WebsocketUpgrader.Upgrade(writer, request, nil)
+	conn, err := ws.Upgrader.Upgrade(writer, request, nil)
 	if err != nil {
 		logger.Error("Failed to setup websocket", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
@@ -130,7 +130,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	}
 
 	// Setup websocket
-	c, err := shared.WebsocketUpgrader.Upgrade(writer, request, nil)
+	c, err := ws.Upgrader.Upgrade(writer, request, nil)
 	if err != nil {
 		logger.Error("Failed to setup websocket", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
