@@ -39,10 +39,11 @@ func (c *client) cmdScoreboard(ctx *cli.Context) error {
 
 	drawTable := func(board []api.ScoreboardEntry) {
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"Team", "Points", "Last submit"})
+		table.SetHeader([]string{"Ranking", "Team", "Points", "Last submit"})
 		table.SetBorder(false)
 		table.SetAutoWrapText(false)
 
+		rank := 1
 		for _, entry := range board {
 			lastSubmitTime := "never"
 			if !entry.LastSubmitTime.IsZero() {
@@ -50,10 +51,13 @@ func (c *client) cmdScoreboard(ctx *cli.Context) error {
 			}
 
 			table.Append([]string{
+				fmt.Sprintf("%d", rank),
 				fmt.Sprintf("<%s> %s ", entry.Team.Country, entry.Team.Name),
 				fmt.Sprintf("%d", entry.Value),
 				lastSubmitTime,
 			})
+
+			rank++
 		}
 
 		table.Render()
