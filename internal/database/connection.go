@@ -11,7 +11,7 @@ import (
 )
 
 // Connect sets up the database connection and returns a DB struct
-func Connect(driver string, host string, username string, password string, database string, connections int, logger log15.Logger) (*DB, error) {
+func Connect(driver string, host string, username string, password string, database string, connections int, tls bool, logger log15.Logger) (*DB, error) {
 	// We only support postgres for now
 	if driver != "postgres" {
 		return nil, fmt.Errorf("Database driver not supported")
@@ -24,9 +24,15 @@ func Connect(driver string, host string, username string, password string, datab
 		"username":    username,
 		"database":    database,
 		"connections": connections,
+		"tls":         tls,
 	})
 
-	psqlDB, err := sql.Open(driver, fmt.Sprintf("host=%s user=%s password=%s dbname=%s", host, username, password, database))
+	sslmode := "require"
+
+	if !tls {
+		sslmode = "disable"
+	}
+	psqlDB, err := sql.Open(driver, fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", host, username, password, database, sslmode))
 	if err != nil {
 		return nil, err
 	}

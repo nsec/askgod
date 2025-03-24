@@ -91,6 +91,7 @@ func (d *Daemon) Run() error {
 		d.config.Database.Password,
 		d.config.Database.Name,
 		d.config.Database.Connections,
+		d.config.Database.TLS,
 		d.logger.New("module", "database"))
 	if err != nil {
 		return err

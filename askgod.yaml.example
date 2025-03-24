@@ -47,6 +47,9 @@ database:
   # Number of connections
   connections: 5
 
+  # enable TLS
+  tls: false
+
 # Scoring system configuration
 scoring:
   # Name of the event
