@@ -9,11 +9,11 @@ daemon:
   # HTTP port to bind
   http_port: 9080
 
-  # HTTPs port to bind
-  https_port: 443
+  # HTTPs port to bind. If not set, do not use HTTPS.
+  #https_port: 443
 
-  # Prometheus HTTP port to bind
-  prometheus_port: 8081
+  # Prometheus HTTP port to bind. If not set, do not use Promotheus.
+  #prometheus_port: 8081
 
   # TLS certificate or file path
   https_certificate:
