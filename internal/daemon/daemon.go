@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -101,7 +102,20 @@ func (d *Daemon) Run() error {
 
 	// Load the rest of the config
 	dbConf, err := d.db.GetConfig()
-	if err != nil {
+	if err != nil && errors.Is(err, database.ErrEmptyConfig) {
+		d.logger.Info("Config is not found in database. Adding it from the YAML configuration.")
+		err := d.db.UpdateConfig(d.config.ConfigPut)
+		if err != nil {
+			d.logger.Info("Failed to add config.")
+			return err
+		}
+
+		dbConf, err = d.db.GetConfig()
+		if err != nil {
+			return err
+		}
+	} else if err != nil {
+		d.logger.Info("Failed to get config.")
 		return err
 	}
 
