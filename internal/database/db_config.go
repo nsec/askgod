@@ -1,11 +1,14 @@
 package database
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/nsec/askgod/api"
 )
+
+var ErrEmptyConfig = errors.New("no configuration in database")
 
 // GetConfig retrieves the configuration
 func (db *DB) GetConfig() (*api.ConfigPut, error) {
@@ -18,7 +21,9 @@ func (db *DB) GetConfig() (*api.ConfigPut, error) {
 
 	// Iterate through the results
 	dbConfig := map[string]string{}
+	count := 0
 	for rows.Next() {
+		count++
 		key := ""
 		value := ""
 
@@ -28,6 +33,10 @@ func (db *DB) GetConfig() (*api.ConfigPut, error) {
 		}
 
 		dbConfig[key] = value
+	}
+
+	if count == 0 {
+		return nil, ErrEmptyConfig
 	}
 
 	// Apply mapping

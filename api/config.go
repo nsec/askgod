@@ -39,6 +39,7 @@ type ConfigDatabase struct {
 	Password    string `yaml:"password" json:"password"`
 	Name        string `yaml:"name" json:"name"`
 	Connections int    `yaml:"connections" json:"connections"`
+	TLS         bool   `yaml:"tls" json:"tls"`
 }
 
 // ConfigScoring represents the Daemon part of the Askgod configuration

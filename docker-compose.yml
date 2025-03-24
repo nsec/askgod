@@ -1,0 +1,19 @@
+services:
+  database:
+    image: 'postgres:latest'
+    ports:
+      - 5432:5432
+    networks:
+      - postgres-network
+    volumes:
+      - ${PWD}/db-data/:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_USER: askgod # The PostgreSQL user (useful to connect to the database)
+      POSTGRES_PASSWORD: askgod # The PostgreSQL password (useful to connect to the database)
+      POSTGRES_DB: askgod # The PostgreSQL default database (automatically created at first launch)
+
+
+
+networks: 
+  postgres-network:
+    driver: bridge

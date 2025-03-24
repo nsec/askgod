@@ -43,6 +43,11 @@ CREATE TABLE IF NOT EXISTS schema (
     updated_at TIMESTAMP WITH TIME ZONE,
     UNIQUE(version)
 );
+
+CREATE TABLE IF NOT EXISTS config (
+    key  VARCHAR PRIMARY KEY,
+    value VARCHAR
+);
 `
 
 // GetCurrentSchema returns the current DB schema version
