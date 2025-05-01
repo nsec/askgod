@@ -1,7 +1,5 @@
 module github.com/nsec/askgod
 
-replace google.golang.org/grpc/naming => google.golang.org/grpc v1.29.1
-
 go 1.23.7
 
 require (
