@@ -241,13 +241,13 @@ func main() {
 		},
 	}
 
-	app.Before = func(ctx *cli.Context) error {
+	app.Before = func(_ *cli.Context) error {
 		return c.setupClient()
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
 }

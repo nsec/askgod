@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"sort"
+	"strconv"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -12,7 +12,7 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-// Sorting
+// Sorting.
 type byFlagID []api.AdminScore
 
 func (a byFlagID) Len() int {
@@ -27,7 +27,7 @@ func (a byFlagID) Less(i, j int) bool {
 	return a[i].FlagID < a[j].FlagID
 }
 
-func (c *client) cmdAdminHistory(ctx *cli.Context) error {
+func (c *client) cmdAdminHistory(_ *cli.Context) error {
 	// Get the scores
 	scores := []api.AdminScore{}
 	err := c.queryStruct("GET", "/scores", nil, &scores)
@@ -62,6 +62,7 @@ func (c *client) cmdAdminHistory(ctx *cli.Context) error {
 		for _, t := range teams {
 			if t.ID == entry.TeamID {
 				team = t
+
 				break
 			}
 		}
@@ -71,23 +72,24 @@ func (c *client) cmdAdminHistory(ctx *cli.Context) error {
 		for _, t := range flags {
 			if t.ID == entry.FlagID {
 				flag = t
+
 				break
 			}
 		}
 
-		teamid := fmt.Sprintf("%d", team.ID)
+		teamid := strconv.FormatInt(team.ID, 10)
 		if team.Tags["infra"] != "" {
 			teamid = team.Tags["infra"]
 		}
 
 		table.Append([]string{
-			fmt.Sprintf("%d", flag.ID),
+			strconv.FormatInt(flag.ID, 10),
 			flag.Description,
 			utils.PackTags(flag.Tags),
 			teamid,
 			team.Name,
 			utils.PackTags(team.Tags),
-			fmt.Sprintf("%d", entry.Value),
+			strconv.FormatInt(entry.Value, 10),
 			entry.SubmitTime.Local().Format(layout),
 		})
 	}

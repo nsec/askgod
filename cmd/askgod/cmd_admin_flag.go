@@ -3,9 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
@@ -37,11 +38,12 @@ func (c *client) cmdAdminAddFlag(ctx *cli.Context) error {
 
 func (c *client) cmdAdminDeleteFlag(ctx *cli.Context) error {
 	if ctx.NArg() != 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
-	err := c.queryStruct("DELETE", fmt.Sprintf("/flags/%s", ctx.Args().Get(0)), nil, nil)
+	err := c.queryStruct("DELETE", "/flags/"+ctx.Args().Get(0), nil, nil)
 	if err != nil {
 		return err
 	}
@@ -51,18 +53,19 @@ func (c *client) cmdAdminDeleteFlag(ctx *cli.Context) error {
 
 func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
 	if ctx.NArg() < 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
 	// Flush all existing entries
 	if ctx.Bool("flush") {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Flush all flags (yes/no): ")
+		_, _ = fmt.Printf("Flush all flags (yes/no): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
 		if strings.TrimSpace(strings.ToLower(input)) != "yes" {
-			return fmt.Errorf("User aborted flush operation")
+			return errors.New("user aborted flush operation")
 		}
 
 		err := c.queryStruct("DELETE", "/flags?empty=1", nil, nil)
@@ -72,7 +75,7 @@ func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
 	}
 
 	// Read the file
-	content, err := ioutil.ReadFile(ctx.Args().Get(0))
+	content, err := os.ReadFile(ctx.Args().Get(0))
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func (c *client) cmdAdminImportFlags(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *client) cmdAdminListFlags(ctx *cli.Context) error {
+func (c *client) cmdAdminListFlags(_ *cli.Context) error {
 	// Get the data
 	resp := []api.AdminFlag{}
 
@@ -109,9 +112,9 @@ func (c *client) cmdAdminListFlags(ctx *cli.Context) error {
 
 	for _, entry := range resp {
 		table.Append([]string{
-			fmt.Sprintf("%d", entry.ID),
+			strconv.FormatInt(entry.ID, 10),
 			entry.Flag,
-			fmt.Sprintf("%d", entry.Value),
+			strconv.FormatInt(entry.Value, 10),
 			entry.ReturnString,
 			entry.Description,
 			utils.PackTags(entry.Tags),
@@ -125,12 +128,13 @@ func (c *client) cmdAdminListFlags(ctx *cli.Context) error {
 
 func (c *client) cmdAdminUpdateFlag(ctx *cli.Context) error {
 	if ctx.NArg() < 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
 	flag := api.AdminFlag{}
-	err := c.queryStruct("GET", fmt.Sprintf("/flags/%s", ctx.Args().Get(0)), nil, &flag)
+	err := c.queryStruct("GET", "/flags/"+ctx.Args().Get(0), nil, &flag)
 	if err != nil {
 		return err
 	}
@@ -144,7 +148,7 @@ func (c *client) cmdAdminUpdateFlag(ctx *cli.Context) error {
 		}
 	}
 
-	err = c.queryStruct("PUT", fmt.Sprintf("/flags/%s", ctx.Args().Get(0)), flag.AdminFlagPut, nil)
+	err = c.queryStruct("PUT", "/flags/"+ctx.Args().Get(0), flag.AdminFlagPut, nil)
 	if err != nil {
 		return err
 	}

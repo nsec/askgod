@@ -41,7 +41,7 @@ func (c *client) cmdAdminConfig(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("%s", data)
+	_, _ = fmt.Printf("%s", data)
 
 	return nil
 }

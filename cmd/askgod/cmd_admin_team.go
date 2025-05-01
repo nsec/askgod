@@ -3,9 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
@@ -37,18 +38,19 @@ func (c *client) cmdAdminAddTeam(ctx *cli.Context) error {
 
 func (c *client) cmdAdminImportTeams(ctx *cli.Context) error {
 	if ctx.NArg() < 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
 	// Flush all existing entries
 	if ctx.Bool("flush") {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Flush all teams (yes/no): ")
+		_, _ = fmt.Printf("Flush all teams (yes/no): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
 		if strings.TrimSpace(strings.ToLower(input)) != "yes" {
-			return fmt.Errorf("User aborted flush operation")
+			return errors.New("user aborted flush operation")
 		}
 
 		err := c.queryStruct("DELETE", "/teams?empty=1", nil, nil)
@@ -58,7 +60,7 @@ func (c *client) cmdAdminImportTeams(ctx *cli.Context) error {
 	}
 
 	// Read the file
-	content, err := ioutil.ReadFile(ctx.Args().Get(0))
+	content, err := os.ReadFile(ctx.Args().Get(0))
 	if err != nil {
 		return err
 	}
@@ -81,11 +83,12 @@ func (c *client) cmdAdminImportTeams(ctx *cli.Context) error {
 
 func (c *client) cmdAdminDeleteTeam(ctx *cli.Context) error {
 	if ctx.NArg() != 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
-	err := c.queryStruct("DELETE", fmt.Sprintf("/teams/%s", ctx.Args().Get(0)), nil, nil)
+	err := c.queryStruct("DELETE", "/teams/"+ctx.Args().Get(0), nil, nil)
 	if err != nil {
 		return err
 	}
@@ -93,7 +96,7 @@ func (c *client) cmdAdminDeleteTeam(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *client) cmdAdminListTeams(ctx *cli.Context) error {
+func (c *client) cmdAdminListTeams(_ *cli.Context) error {
 	// Get the data
 	resp := []api.AdminTeam{}
 
@@ -109,7 +112,7 @@ func (c *client) cmdAdminListTeams(ctx *cli.Context) error {
 
 	for _, entry := range resp {
 		table.Append([]string{
-			fmt.Sprintf("%d", entry.ID),
+			strconv.FormatInt(entry.ID, 10),
 			entry.Name,
 			entry.Country,
 			entry.Website,
@@ -126,12 +129,13 @@ func (c *client) cmdAdminListTeams(ctx *cli.Context) error {
 
 func (c *client) cmdAdminUpdateTeam(ctx *cli.Context) error {
 	if ctx.NArg() < 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
 	team := api.AdminTeam{}
-	err := c.queryStruct("GET", fmt.Sprintf("/teams/%s", ctx.Args().Get(0)), nil, &team)
+	err := c.queryStruct("GET", "/teams/"+ctx.Args().Get(0), nil, &team)
 	if err != nil {
 		return err
 	}
@@ -145,7 +149,7 @@ func (c *client) cmdAdminUpdateTeam(ctx *cli.Context) error {
 		}
 	}
 
-	err = c.queryStruct("PUT", fmt.Sprintf("/teams/%s", ctx.Args().Get(0)), team.AdminTeamPut, nil)
+	err = c.queryStruct("PUT", "/teams/"+ctx.Args().Get(0), team.AdminTeamPut, nil)
 	if err != nil {
 		return err
 	}

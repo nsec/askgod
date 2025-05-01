@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -10,7 +11,7 @@ import (
 	"github.com/nsec/askgod/api"
 )
 
-func (c *client) cmdTimeline(ctx *cli.Context) error {
+func (c *client) cmdTimeline(_ *cli.Context) error {
 	// Get the data
 	resp := []api.TimelineEntry{}
 
@@ -23,12 +24,12 @@ func (c *client) cmdTimeline(ctx *cli.Context) error {
 	first := true
 	for _, entry := range resp {
 		if !first {
-			fmt.Println("")
+			_, _ = fmt.Println("")
 		} else {
 			first = false
 		}
 
-		fmt.Printf("== %d: <%s> %s\n", entry.Team.ID, entry.Team.Country, entry.Team.Name)
+		_, _ = fmt.Printf("== %d: <%s> %s\n", entry.Team.ID, entry.Team.Country, entry.Team.Name)
 		table := tablewriter.NewWriter(os.Stdout)
 		table.SetHeader([]string{"Submit time", "Value", "Total"})
 		table.SetBorder(false)
@@ -37,8 +38,8 @@ func (c *client) cmdTimeline(ctx *cli.Context) error {
 		for _, score := range entry.Score {
 			table.Append([]string{
 				score.SubmitTime.Local().Format(layout),
-				fmt.Sprintf("%d", score.Value),
-				fmt.Sprintf("%d", score.Total),
+				strconv.FormatInt(score.Value, 10),
+				strconv.FormatInt(score.Total, 10),
 			})
 		}
 

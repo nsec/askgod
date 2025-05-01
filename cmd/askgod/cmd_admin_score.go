@@ -3,9 +3,10 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
@@ -36,11 +37,12 @@ func (c *client) cmdAdminAddScore(ctx *cli.Context) error {
 
 func (c *client) cmdAdminDeleteScore(ctx *cli.Context) error {
 	if ctx.NArg() != 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
-	err := c.queryStruct("DELETE", fmt.Sprintf("/scores/%s", ctx.Args().Get(0)), nil, nil)
+	err := c.queryStruct("DELETE", "/scores/"+ctx.Args().Get(0), nil, nil)
 	if err != nil {
 		return err
 	}
@@ -50,18 +52,19 @@ func (c *client) cmdAdminDeleteScore(ctx *cli.Context) error {
 
 func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
 	if ctx.NArg() < 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
 	// Flush all existing entries
 	if ctx.Bool("flush") {
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Printf("Flush all scores (yes/no): ")
+		_, _ = fmt.Printf("Flush all scores (yes/no): ")
 		input, _ := reader.ReadString('\n')
 		input = strings.TrimSuffix(input, "\n")
 		if strings.TrimSpace(strings.ToLower(input)) != "yes" {
-			return fmt.Errorf("User aborted flush operation")
+			return errors.New("user aborted flush operation")
 		}
 
 		err := c.queryStruct("DELETE", "/scores?empty=1", nil, nil)
@@ -71,7 +74,7 @@ func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
 	}
 
 	// Read the file
-	content, err := ioutil.ReadFile(ctx.Args().Get(0))
+	content, err := os.ReadFile(ctx.Args().Get(0))
 	if err != nil {
 		return err
 	}
@@ -92,7 +95,7 @@ func (c *client) cmdAdminImportScores(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *client) cmdAdminListScores(ctx *cli.Context) error {
+func (c *client) cmdAdminListScores(_ *cli.Context) error {
 	// Get the data
 	resp := []api.AdminScore{}
 
@@ -109,10 +112,10 @@ func (c *client) cmdAdminListScores(ctx *cli.Context) error {
 
 	for _, entry := range resp {
 		table.Append([]string{
-			fmt.Sprintf("%d", entry.ID),
-			fmt.Sprintf("%d", entry.TeamID),
-			fmt.Sprintf("%d", entry.FlagID),
-			fmt.Sprintf("%d", entry.Value),
+			strconv.FormatInt(entry.ID, 10),
+			strconv.FormatInt(entry.TeamID, 10),
+			strconv.FormatInt(entry.FlagID, 10),
+			strconv.FormatInt(entry.Value, 10),
 			entry.SubmitTime.Local().Format(layout),
 			entry.Notes,
 		})
@@ -125,12 +128,13 @@ func (c *client) cmdAdminListScores(ctx *cli.Context) error {
 
 func (c *client) cmdAdminUpdateScore(ctx *cli.Context) error {
 	if ctx.NArg() < 1 {
-		cli.ShowSubcommandHelp(ctx)
+		_ = cli.ShowSubcommandHelp(ctx)
+
 		return nil
 	}
 
 	score := api.AdminScore{}
-	err := c.queryStruct("GET", fmt.Sprintf("/scores/%s", ctx.Args().Get(0)), nil, &score)
+	err := c.queryStruct("GET", "/scores/"+ctx.Args().Get(0), nil, &score)
 	if err != nil {
 		return err
 	}
@@ -144,7 +148,7 @@ func (c *client) cmdAdminUpdateScore(ctx *cli.Context) error {
 		}
 	}
 
-	err = c.queryStruct("PUT", fmt.Sprintf("/scores/%s", ctx.Args().Get(0)), score.AdminScorePut, nil)
+	err = c.queryStruct("PUT", "/scores/"+ctx.Args().Get(0), score.AdminScorePut, nil)
 	if err != nil {
 		return err
 	}

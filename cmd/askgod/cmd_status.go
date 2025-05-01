@@ -9,7 +9,7 @@ import (
 	"github.com/nsec/askgod/api"
 )
 
-func (c *client) cmdStatus(ctx *cli.Context) error {
+func (c *client) cmdStatus(_ *cli.Context) error {
 	// Get the data
 	resp := api.Status{}
 
@@ -23,7 +23,7 @@ func (c *client) cmdStatus(ctx *cli.Context) error {
 		return err
 	}
 
-	fmt.Printf("%s", data)
+	_, _ = fmt.Printf("%s", data)
 
 	return nil
 }

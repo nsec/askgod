@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli/v2"
@@ -16,7 +16,7 @@ func (c *client) cmdHistory(ctx *cli.Context) error {
 
 	if ctx.NArg() > 0 {
 		flag := api.Flag{}
-		err := c.queryStruct("GET", fmt.Sprintf("/team/flags/%s", ctx.Args().Get(0)), nil, &flag)
+		err := c.queryStruct("GET", "/team/flags/"+ctx.Args().Get(0), nil, &flag)
 		if err != nil {
 			return err
 		}
@@ -29,7 +29,7 @@ func (c *client) cmdHistory(ctx *cli.Context) error {
 				}
 			}
 
-			err = c.queryStruct("PUT", fmt.Sprintf("/team/flags/%s", ctx.Args().Get(0)), flag.FlagPut, nil)
+			err = c.queryStruct("PUT", "/team/flags/"+ctx.Args().Get(0), flag.FlagPut, nil)
 			if err != nil {
 				return err
 			}
@@ -53,9 +53,9 @@ func (c *client) cmdHistory(ctx *cli.Context) error {
 
 	for _, flag := range resp {
 		table.Append([]string{
-			fmt.Sprintf("%d", flag.ID),
+			strconv.FormatInt(flag.ID, 10),
 			flag.Description,
-			fmt.Sprintf("%d", flag.Value),
+			strconv.FormatInt(flag.Value, 10),
 			flag.SubmitTime.Local().Format(layout),
 			flag.ReturnString,
 			flag.Notes,

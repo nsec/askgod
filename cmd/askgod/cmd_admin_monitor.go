@@ -56,7 +56,7 @@ func (c *client) cmdAdminMonitorLog(ctx *cli.Context) error {
 			continue
 		}
 
-		ctx := []interface{}{}
+		ctx := []any{}
 		for k, v := range logEntry.Context {
 			ctx = append(ctx, k)
 			ctx = append(ctx, v)
@@ -70,13 +70,13 @@ func (c *client) cmdAdminMonitorLog(ctx *cli.Context) error {
 		}
 
 		format := log15.TerminalFormat()
-		fmt.Printf("[%s] %s", event.Server, format.Format(&record))
+		_, _ = fmt.Printf("[%s] %s", event.Server, format.Format(&record))
 	}
 
-	return nil
+	return nil //nolint:nilerr
 }
 
-func (c *client) cmdAdminMonitorFlags(ctx *cli.Context) error {
+func (c *client) cmdAdminMonitorFlags(_ *cli.Context) error {
 	// Connection handler
 	conn, err := c.websocket("/events?type=flags")
 	if err != nil {
@@ -112,17 +112,18 @@ func (c *client) cmdAdminMonitorFlags(ctx *cli.Context) error {
 			team = score.Team.Tags["infra"]
 		}
 
-		if score.Type == "valid" {
-			fmt.Printf("[%s][%s] Team \"%s\" (%s) scored %d points with \"%s\" (id=%d) (%s)\n",
+		switch score.Type {
+		case "valid":
+			_, _ = fmt.Printf("[%s][%s] Team \"%s\" (%s) scored %d points with \"%s\" (id=%d) (%s)\n",
 				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Value, score.Input, score.Flag.ID, utils.PackTags(score.Flag.Tags))
-		} else if score.Type == "duplicate" {
-			fmt.Printf("[%s][%s] Team \"%s\" (%s) re-submitted \"%s\" (id=%d) (%s)\n",
+		case "duplicate":
+			_, _ = fmt.Printf("[%s][%s] Team \"%s\" (%s) re-submitted \"%s\" (id=%d) (%s)\n",
 				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Input, score.Flag.ID, utils.PackTags(score.Flag.Tags))
-		} else if score.Type == "invalid" {
-			fmt.Printf("[%s][%s] Team \"%s\" (%s) submitted invalid flag \"%s\"\n",
+		case "invalid":
+			_, _ = fmt.Printf("[%s][%s] Team \"%s\" (%s) submitted invalid flag \"%s\"\n",
 				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Input)
 		}
 	}
 
-	return nil
+	return nil //nolint:nilerr
 }

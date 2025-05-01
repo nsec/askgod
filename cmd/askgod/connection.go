@@ -6,8 +6,9 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -56,11 +57,12 @@ func (c *client) setupClient() error {
 
 	var transport *http.Transport
 
-	if u.Scheme == "http" {
+	switch u.Scheme {
+	case "http":
 		transport = &http.Transport{
 			DisableKeepAlives: true,
 		}
-	} else if u.Scheme == "https" {
+	case "https":
 		tlsConfig := &tls.Config{
 			MinVersion: tls.VersionTLS13,
 		}
@@ -69,12 +71,12 @@ func (c *client) setupClient() error {
 		if ok {
 			certBlock, _ := pem.Decode([]byte(cert))
 			if certBlock == nil {
-				return fmt.Errorf("Failed to load pinned certificate")
+				return errors.New("failed to load pinned certificate")
 			}
 
 			cert, err := x509.ParseCertificate(certBlock.Bytes)
 			if err != nil {
-				return fmt.Errorf("Failed to parse pinned certificate: %v", err)
+				return fmt.Errorf("failed to parse pinned certificate: %w", err)
 			}
 
 			caCertPool := tlsConfig.RootCAs
@@ -90,8 +92,8 @@ func (c *client) setupClient() error {
 			TLSClientConfig:   tlsConfig,
 			DisableKeepAlives: true,
 		}
-	} else {
-		return fmt.Errorf("Unsupported server URL: %s", c.server)
+	default:
+		return fmt.Errorf("unsupported server URL: %s", c.server)
 	}
 
 	c.http = &http.Client{
@@ -101,11 +103,11 @@ func (c *client) setupClient() error {
 	return nil
 }
 
-func (c *client) queryStruct(method string, path string, data interface{}, target interface{}) error {
+func (c *client) queryStruct(method string, path string, data any, target any) error {
 	var req *http.Request
 	var err error
 
-	url := fmt.Sprintf("%s/1.0%s", c.server, path)
+	u := fmt.Sprintf("%s/1.0%s", c.server, path)
 
 	// Get a new HTTP request setup
 	if data != nil {
@@ -117,7 +119,7 @@ func (c *client) queryStruct(method string, path string, data interface{}, targe
 		}
 
 		// Some data to be sent along with the request
-		req, err = http.NewRequest(method, url, &buf)
+		req, err = http.NewRequest(method, u, &buf)
 		if err != nil {
 			return err
 		}
@@ -126,7 +128,7 @@ func (c *client) queryStruct(method string, path string, data interface{}, targe
 		req.Header.Set("Content-Type", "application/json")
 	} else {
 		// No data to be sent along with the request
-		req, err = http.NewRequest(method, url, nil)
+		req, err = http.NewRequest(method, u, nil)
 		if err != nil {
 			return err
 		}
@@ -140,12 +142,12 @@ func (c *client) queryStruct(method string, path string, data interface{}, targe
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		content, err := ioutil.ReadAll(resp.Body)
+		content, err := io.ReadAll(resp.Body)
 		if err == nil && string(content) != "" {
-			return fmt.Errorf("%s", strings.TrimSpace(string(content)))
+			return errors.New(strings.TrimSpace(string(content)))
 		}
 
-		return fmt.Errorf("%s: %s", url, resp.Status)
+		return fmt.Errorf("%s: %s", u, resp.Status)
 	}
 
 	// Decode the response
@@ -162,15 +164,18 @@ func (c *client) queryStruct(method string, path string, data interface{}, targe
 
 func (c *client) websocket(path string) (*websocket.Conn, error) {
 	// Generate the URL
-	var url string
+	var u string
 	if strings.HasPrefix(c.server, "https://") {
-		url = fmt.Sprintf("wss://%s/1.0%s", strings.TrimPrefix(c.server, "https://"), path)
+		u = fmt.Sprintf("wss://%s/1.0%s", strings.TrimPrefix(c.server, "https://"), path)
 	} else {
-		url = fmt.Sprintf("ws://%s/1.0%s", strings.TrimPrefix(c.server, "http://"), path)
+		u = fmt.Sprintf("ws://%s/1.0%s", strings.TrimPrefix(c.server, "http://"), path)
 	}
 
 	// Grab the http transport handler
-	httpTransport := c.http.Transport.(*http.Transport)
+	httpTransport, ok := c.http.Transport.(*http.Transport)
+	if !ok {
+		return nil, fmt.Errorf("unexpected transport type: %t", c.http.Transport)
+	}
 
 	// Setup a new websocket dialer based on it
 	dialer := websocket.Dialer{
@@ -179,10 +184,10 @@ func (c *client) websocket(path string) (*websocket.Conn, error) {
 	}
 
 	// Establish the connection
-	conn, _, err := dialer.Dial(url, nil)
+	conn, _, err := dialer.Dial(u, nil) //nolint:bodyclose
 	if err != nil {
 		return nil, err
 	}
 
-	return conn, err
+	return conn, nil
 }

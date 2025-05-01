@@ -10,7 +10,8 @@ import (
 
 func (c *client) cmdSubmit(ctx *cli.Context) error {
 	if ctx.NArg() != 1 {
-		cli.ShowCommandHelp(ctx, "submit")
+		_ = cli.ShowCommandHelp(ctx, "submit")
+
 		return nil
 	}
 
@@ -28,17 +29,20 @@ func (c *client) cmdSubmit(ctx *cli.Context) error {
 	}
 
 	// Process the points
-	if resp.Value < 0 {
-		fmt.Printf("You shouldn't have sent that! You just lost your team %d points.\n", resp.Value*-1)
-	} else if resp.Value == 0 {
-		fmt.Printf("You sent a valid flag, but no points have been granted.\n")
-	} else {
-		fmt.Printf("Congratulations, you score your team %d points!\n", resp.Value)
+	switch {
+	case resp.Value < 0:
+		_, _ = fmt.Printf("You shouldn't have sent that! You just lost your team %d points.\n", resp.Value*-1)
+
+	case resp.Value == 0:
+		_, _ = fmt.Printf("You sent a valid flag, but no points have been granted.\n")
+
+	default:
+		_, _ = fmt.Printf("Congratulations, you score your team %d points!\n", resp.Value)
 	}
 
 	// And show any message we received
 	if resp.ReturnString != "" {
-		fmt.Printf("Message: %s\n", resp.ReturnString)
+		_, _ = fmt.Printf("Message: %s\n", resp.ReturnString)
 	}
 
 	return nil
