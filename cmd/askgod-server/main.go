@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -20,8 +21,9 @@ func main() {
 
 	app.Action = func(c *cli.Context) error {
 		if c.NArg() == 0 {
-			cli.ShowAppHelp(c)
-			return fmt.Errorf("Missing required arguments")
+			_ = cli.ShowAppHelp(c)
+
+			return errors.New("missing required arguments")
 		}
 
 		d, err := daemon.NewDaemon(c.Args().Get(0))
@@ -34,7 +36,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Printf("error: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
