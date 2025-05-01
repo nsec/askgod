@@ -1,0 +1,105 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop # handled by revive
+    - depguard
+    - dupl
+    - err113
+    - exhaustruct
+    - forbidigo
+    - funlen # handled by revive
+    - gochecknoglobals
+    - gocognit
+    - goconst
+    - gocyclo
+    - ireturn
+    - lll
+    - maintidx
+    - mnd
+    - testpackage
+    - unparam
+    - varnamelen
+    - wrapcheck
+    - wsl
+
+  settings:
+    gosec:
+      config:
+        G301: "0755"
+        G306: "0644"
+
+    gosmopolitan:
+      allow-time-local: true
+
+    nestif:
+      min-complexity: 20
+
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: add-constant
+          disabled: true
+        - name: cognitive-complexity
+          arguments:
+            - 100
+        - name: cyclomatic
+          arguments:
+            - 40
+        - name: flag-parameter
+          disabled: true
+        - name: function-length
+          arguments:
+            - 200
+            - 300
+        - name: get-return
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: max-public-structs
+          disabled: true
+        - name: nested-structs
+          disabled: true
+
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+          yaml: snake
+
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - errcheck
+        source: ^\s*defer\s+
+
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+
+  settings:
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/nsec/askgod)
+
+    goimports:
+      local-prefixes:
+        - github.com/nsec/askgod
+
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
