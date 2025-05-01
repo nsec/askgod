@@ -6,7 +6,7 @@ import (
 	"github.com/nsec/askgod/api"
 )
 
-// GetScoreboard generates the current scoreboard
+// GetScoreboard generates the current scoreboard.
 func (db *DB) GetScoreboard() ([]api.ScoreboardEntry, error) {
 	// Return a list of score entries
 	resp := []api.ScoreboardEntry{}

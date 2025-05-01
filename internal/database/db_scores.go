@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"os"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-// GetTeamPoints returns the current total for the team
+// GetTeamPoints returns the current total for the team.
 func (db *DB) GetTeamPoints(teamid int64) (int64, error) {
 	total := int64(0)
 
@@ -22,7 +23,7 @@ func (db *DB) GetTeamPoints(teamid int64) (int64, error) {
 	return total, nil
 }
 
-// GetTeamFlags retrieves all the score entries for the team
+// GetTeamFlags retrieves all the score entries for the team.
 func (db *DB) GetTeamFlags(teamid int64) ([]api.Flag, error) {
 	// Return a list of score entries
 	resp := []api.Flag{}
@@ -55,7 +56,7 @@ func (db *DB) GetTeamFlags(teamid int64) ([]api.Flag, error) {
 	return resp, nil
 }
 
-// GetTeamFlag retrieves a single score entry for the team
+// GetTeamFlag retrieves a single score entry for the team.
 func (db *DB) GetTeamFlag(teamid int64, id int64) (*api.Flag, error) {
 	// Return a list of score entries
 	resp := api.Flag{}
@@ -70,7 +71,7 @@ func (db *DB) GetTeamFlag(teamid int64, id int64) (*api.Flag, error) {
 	return &resp, nil
 }
 
-// UpdateTeamFlag updates a single score entry for the team
+// UpdateTeamFlag updates a single score entry for the team.
 func (db *DB) UpdateTeamFlag(teamid int64, id int64, flag api.FlagPut) error {
 	// Update the database entry
 	result, err := db.Exec("UPDATE score SET notes=$1 WHERE teamid=$2 AND flagid=$3;",
@@ -92,7 +93,7 @@ func (db *DB) UpdateTeamFlag(teamid int64, id int64, flag api.FlagPut) error {
 	return nil
 }
 
-// SubmitTeamFlag validates a submitted flag and adds it to the database
+// SubmitTeamFlag validates a submitted flag and adds it to the database.
 func (db *DB) SubmitTeamFlag(teamid int64, flag api.FlagPost) (*api.Flag, *api.AdminFlag, error) {
 	// Query the database entry
 	row := api.AdminFlag{}
@@ -113,7 +114,7 @@ func (db *DB) SubmitTeamFlag(teamid int64, flag api.FlagPost) (*api.Flag, *api.A
 	err = db.QueryRow("SELECT id FROM score WHERE teamid=$1 AND flagid=$2;", teamid, row.ID).Scan(&id)
 	if err == nil {
 		return nil, &row, os.ErrExist
-	} else if err != sql.ErrNoRows {
+	} else if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}
 
@@ -136,7 +137,7 @@ func (db *DB) SubmitTeamFlag(teamid int64, flag api.FlagPost) (*api.Flag, *api.A
 	return &result, &row, nil
 }
 
-// GetScores retrieves all the score entries from the database
+// GetScores retrieves all the score entries from the database.
 func (db *DB) GetScores() ([]api.AdminScore, error) {
 	// Return a list of score entries
 	resp := []api.AdminScore{}
@@ -169,7 +170,7 @@ func (db *DB) GetScores() ([]api.AdminScore, error) {
 	return resp, nil
 }
 
-// GetScore retrieves a single score entry from the database
+// GetScore retrieves a single score entry from the database.
 func (db *DB) GetScore(id int64) (*api.AdminScore, error) {
 	// Query the database entry
 	row := api.AdminScore{}
@@ -182,7 +183,7 @@ func (db *DB) GetScore(id int64) (*api.AdminScore, error) {
 	return &row, nil
 }
 
-// CreateScore adds a new score entry to the database
+// CreateScore adds a new score entry to the database.
 func (db *DB) CreateScore(score api.AdminScorePost) (int64, error) {
 	id := int64(-1)
 
@@ -196,7 +197,7 @@ func (db *DB) CreateScore(score api.AdminScorePost) (int64, error) {
 	return id, nil
 }
 
-// UpdateScore updates an existing score entry
+// UpdateScore updates an existing score entry.
 func (db *DB) UpdateScore(id int64, score api.AdminScorePut) error {
 	// Update the database entry
 	result, err := db.Exec("UPDATE score SET value=$1, notes=$2 WHERE id=$3;",
@@ -218,7 +219,7 @@ func (db *DB) UpdateScore(id int64, score api.AdminScorePut) error {
 	return nil
 }
 
-// DeleteScore deletes a single score entry from the database
+// DeleteScore deletes a single score entry from the database.
 func (db *DB) DeleteScore(id int64) error {
 	// Delete the database entry
 	result, err := db.Exec("DELETE FROM score WHERE id=$1;", id)
@@ -239,7 +240,7 @@ func (db *DB) DeleteScore(id int64) error {
 	return nil
 }
 
-// ClearScores wipes all score entries from the database
+// ClearScores wipes all score entries from the database.
 func (db *DB) ClearScores() error {
 	// Start a transaction
 	tx, err := db.Begin()
@@ -250,14 +251,22 @@ func (db *DB) ClearScores() error {
 	// Wipe the table
 	_, err = tx.Exec("DELETE FROM score;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 
 	// Reset the sequence
 	_, err = tx.Exec("ALTER SEQUENCE score_id_seq RESTART;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 

@@ -32,12 +32,13 @@ func (u *dbUpdate) apply(currentVersion int, db *DB, logger log15.Logger) error 
 	return nil
 }
 
-func dbUpdateFromV0(currentVersion int, version int, db *DB) error {
+func dbUpdateFromV0(_ int, _ int, db *DB) error {
 	_, err := db.Exec("ALTER TABLE team ADD COLUMN tags VARCHAR;")
+
 	return err
 }
 
-func dbUpdateFromV1(currentVersion int, version int, db *DB) error {
+func dbUpdateFromV1(_, _ int, db *DB) error {
 	_, err := db.Exec(`
 CREATE TABLE IF NOT EXISTS config (
     id SERIAL PRIMARY KEY,
@@ -46,5 +47,6 @@ CREATE TABLE IF NOT EXISTS config (
     UNIQUE(key)
 );
 	`)
+
 	return err
 }

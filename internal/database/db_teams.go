@@ -2,7 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"net"
 	"strings"
 
@@ -12,7 +12,7 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-// GetTeams retrieves all the team entries from the database
+// GetTeams retrieves all the team entries from the database.
 func (db *DB) GetTeams() ([]api.AdminTeam, error) {
 	// Return a list of teams
 	resp := []api.AdminTeam{}
@@ -51,7 +51,7 @@ func (db *DB) GetTeams() ([]api.AdminTeam, error) {
 	return resp, nil
 }
 
-// GetTeam retrieves a single team entry from the database
+// GetTeam retrieves a single team entry from the database.
 func (db *DB) GetTeam(id int64) (*api.AdminTeam, error) {
 	// Query the database entry
 	row := api.AdminTeam{}
@@ -70,7 +70,7 @@ func (db *DB) GetTeam(id int64) (*api.AdminTeam, error) {
 	return &row, nil
 }
 
-// GetTeamForIP retrieves a single team entry for the provided IP
+// GetTeamForIP retrieves a single team entry for the provided IP.
 func (db *DB) GetTeamForIP(ip net.IP) (*api.AdminTeam, error) {
 	// Get all the teams
 	teams, err := db.GetTeams()
@@ -92,16 +92,18 @@ func (db *DB) GetTeamForIP(ip net.IP) (*api.AdminTeam, error) {
 			_, netSubnet, err := net.ParseCIDR(subnet)
 			if err != nil {
 				db.logger.Error("Bad subnet", log15.Ctx{"error": err})
+
 				continue
 			}
 
 			if netSubnet.Contains(ip) {
 				if resp != nil {
 					db.logger.Error("More than one team for client IP", log15.Ctx{"ip": ip.String()})
-					return nil, fmt.Errorf("More than one team for client IP")
+
+					return nil, errors.New("more than one team for client IP")
 				}
 
-				newTeam := api.AdminTeam(team)
+				newTeam := team
 				resp = &newTeam
 			}
 		}
@@ -114,7 +116,7 @@ func (db *DB) GetTeamForIP(ip net.IP) (*api.AdminTeam, error) {
 	return resp, nil
 }
 
-// CreateTeam adds a new team to the database
+// CreateTeam adds a new team to the database.
 func (db *DB) CreateTeam(team api.AdminTeamPost) (int64, error) {
 	id := int64(-1)
 
@@ -128,7 +130,7 @@ func (db *DB) CreateTeam(team api.AdminTeamPost) (int64, error) {
 	return id, nil
 }
 
-// UpdateTeam updates an existing team
+// UpdateTeam updates an existing team.
 func (db *DB) UpdateTeam(id int64, team api.AdminTeamPut) error {
 	// Update the database entry
 	result, err := db.Exec("UPDATE team SET name=$1, country=$2, website=$3, notes=$4, subnets=$5, tags=$6 WHERE id=$7;",
@@ -150,7 +152,7 @@ func (db *DB) UpdateTeam(id int64, team api.AdminTeamPut) error {
 	return nil
 }
 
-// DeleteTeam deletes a single team from the database
+// DeleteTeam deletes a single team from the database.
 func (db *DB) DeleteTeam(id int64) error {
 	// Delete the database entry
 	result, err := db.Exec("DELETE FROM team WHERE id=$1;", id)
@@ -171,7 +173,7 @@ func (db *DB) DeleteTeam(id int64) error {
 	return nil
 }
 
-// ClearTeams wipes all team entries from the database
+// ClearTeams wipes all team entries from the database.
 func (db *DB) ClearTeams() error {
 	// Start a transaction
 	tx, err := db.Begin()
@@ -182,14 +184,22 @@ func (db *DB) ClearTeams() error {
 	// Wipe the table
 	_, err = tx.Exec("DELETE FROM team;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 
 	// Reset the sequence
 	_, err = tx.Exec("ALTER SEQUENCE team_id_seq RESTART;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 

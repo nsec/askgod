@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS config (
 );
 `
 
-// GetCurrentSchema returns the current DB schema version
+// GetCurrentSchema returns the current DB schema version.
 func (db *DB) GetCurrentSchema() (int, error) {
 	version := -1
 	err := db.QueryRow("SELECT max(version) FROM schema;").Scan(&version)
@@ -61,7 +61,7 @@ func (db *DB) GetCurrentSchema() (int, error) {
 	return version, nil
 }
 
-func (db *DB) getLatestSchema() int {
+func (*DB) getLatestSchema() int {
 	if len(dbUpdates) == 0 {
 		return 0
 	}
@@ -80,7 +80,11 @@ func (db *DB) createDatabase() error {
 	db.logger.Info("Creating initial database schema")
 	_, err = tx.Exec(schema)
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 
@@ -88,7 +92,11 @@ func (db *DB) createDatabase() error {
 	db.logger.Info("Inserting initial schema entry")
 	_, err = tx.Exec("INSERT INTO schema (version, updated_at) VALUES ($1, $2);", db.getLatestSchema(), time.Now())
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 

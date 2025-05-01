@@ -7,7 +7,7 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-// GetFlags retrieves all the flag entries from the database
+// GetFlags retrieves all the flag entries from the database.
 func (db *DB) GetFlags() ([]api.AdminFlag, error) {
 	// Return a list of flags
 	resp := []api.AdminFlag{}
@@ -46,7 +46,7 @@ func (db *DB) GetFlags() ([]api.AdminFlag, error) {
 	return resp, nil
 }
 
-// GetFlag retrieves a single flag entry from the database
+// GetFlag retrieves a single flag entry from the database.
 func (db *DB) GetFlag(id int64) (*api.AdminFlag, error) {
 	// Query the database entry
 	row := api.AdminFlag{}
@@ -66,7 +66,7 @@ func (db *DB) GetFlag(id int64) (*api.AdminFlag, error) {
 	return &row, nil
 }
 
-// CreateFlag adds a new flag to the database
+// CreateFlag adds a new flag to the database.
 func (db *DB) CreateFlag(flag api.AdminFlagPost) (int64, error) {
 	id := int64(-1)
 
@@ -80,7 +80,7 @@ func (db *DB) CreateFlag(flag api.AdminFlagPost) (int64, error) {
 	return id, nil
 }
 
-// UpdateFlag updates an existing flag
+// UpdateFlag updates an existing flag.
 func (db *DB) UpdateFlag(id int64, flag api.AdminFlagPut) error {
 	// Update the database entry
 	result, err := db.Exec("UPDATE flag SET flag=$1, value=$2, return_string=$3, description=$4, tags=$5 WHERE id=$6;",
@@ -102,7 +102,7 @@ func (db *DB) UpdateFlag(id int64, flag api.AdminFlagPut) error {
 	return nil
 }
 
-// DeleteFlag deletes a single flag from the database
+// DeleteFlag deletes a single flag from the database.
 func (db *DB) DeleteFlag(id int64) error {
 	// Delete the database entry
 	result, err := db.Exec("DELETE FROM flag WHERE id=$1;", id)
@@ -123,7 +123,7 @@ func (db *DB) DeleteFlag(id int64) error {
 	return nil
 }
 
-// ClearFlags wipes all flag entries from the database
+// ClearFlags wipes all flag entries from the database.
 func (db *DB) ClearFlags() error {
 	// Start a transaction
 	tx, err := db.Begin()
@@ -134,14 +134,22 @@ func (db *DB) ClearFlags() error {
 	// Wipe the table
 	_, err = tx.Exec("DELETE FROM flag;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 
 	// Reset the sequence
 	_, err = tx.Exec("ALTER SEQUENCE flag_id_seq RESTART;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 

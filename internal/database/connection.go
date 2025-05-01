@@ -2,19 +2,19 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/inconshreveable/log15"
-
-	// Import the postgres DB driver
+	// Import the postgres DB driver.
 	_ "github.com/lib/pq"
 )
 
-// Connect sets up the database connection and returns a DB struct
+// Connect sets up the database connection and returns a DB struct.
 func Connect(driver string, host string, username string, password string, database string, connections int, tls bool, logger log15.Logger) (*DB, error) {
 	// We only support postgres for now
 	if driver != "postgres" {
-		return nil, fmt.Errorf("Database driver not supported")
+		return nil, errors.New("database driver not supported")
 	}
 
 	// Connect to the backend

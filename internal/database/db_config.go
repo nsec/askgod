@@ -2,15 +2,16 @@ package database
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/nsec/askgod/api"
 )
 
+// ErrEmptyConfig indicates that the database configuration is empty.
 var ErrEmptyConfig = errors.New("no configuration in database")
 
-// GetConfig retrieves the configuration
+// GetConfig retrieves the configuration.
 func (db *DB) GetConfig() (*api.ConfigPut, error) {
 	// Query all the teams from the database
 	rows, err := db.Query("SELECT key, value FROM config;")
@@ -67,7 +68,7 @@ func (db *DB) GetConfig() (*api.ConfigPut, error) {
 	return &resp, nil
 }
 
-// UpdateConfig updates the configuration
+// UpdateConfig updates the configuration.
 func (db *DB) UpdateConfig(config api.ConfigPut) error {
 	// Start a transaction
 	tx, err := db.Begin()
@@ -78,17 +79,21 @@ func (db *DB) UpdateConfig(config api.ConfigPut) error {
 	// Wipe the table
 	_, err = tx.Exec("DELETE FROM config;")
 	if err != nil {
-		tx.Rollback()
+		errRollback := tx.Rollback()
+		if err != nil {
+			return errRollback
+		}
+
 		return err
 	}
 
 	// Setup mapping
 	dbConfig := map[string]string{
 		"scoring.event_name":  config.Scoring.EventName,
-		"scoring.hide_others": fmt.Sprintf("%v", config.Scoring.HideOthers),
-		"scoring.read_only":   fmt.Sprintf("%v", config.Scoring.ReadOnly),
-		"teams.self_register": fmt.Sprintf("%v", config.Teams.SelfRegister),
-		"teams.self_update":   fmt.Sprintf("%v", config.Teams.SelfUpdate),
+		"scoring.hide_others": strconv.FormatBool(config.Scoring.HideOthers),
+		"scoring.read_only":   strconv.FormatBool(config.Scoring.ReadOnly),
+		"teams.self_register": strconv.FormatBool(config.Teams.SelfRegister),
+		"teams.self_update":   strconv.FormatBool(config.Teams.SelfUpdate),
 		"teams.hidden":        strings.Join(config.Teams.Hidden, ","),
 		"subnets.admins":      strings.Join(config.Subnets.Admins, ","),
 		"subnets.teams":       strings.Join(config.Subnets.Teams, ","),
@@ -99,7 +104,11 @@ func (db *DB) UpdateConfig(config api.ConfigPut) error {
 	for k, v := range dbConfig {
 		_, err = tx.Exec("INSERT INTO config (key, value) VALUES ($1, $2);", k, v)
 		if err != nil {
-			tx.Rollback()
+			errRollback := tx.Rollback()
+			if err != nil {
+				return errRollback
+			}
+
 			return err
 		}
 	}

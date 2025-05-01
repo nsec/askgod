@@ -4,7 +4,7 @@ import (
 	"github.com/nsec/askgod/api"
 )
 
-// GetTimeline generates the current timeline
+// GetTimeline generates the current timeline.
 func (db *DB) GetTimeline() ([]api.TimelineEntry, error) {
 	// Return a list of score entries
 	resp := []api.TimelineEntry{}
