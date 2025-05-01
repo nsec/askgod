@@ -7,9 +7,9 @@ import (
 // URL: /1.0/scoreboard
 // Access: guest
 
-// ScoreboardEntry represents a line on the scoreboard
+// ScoreboardEntry represents a line on the scoreboard.
 type ScoreboardEntry struct {
-	Team           Team      `yaml:"team" json:"team"`
-	Value          int64     `yaml:"value" json:"value"`
-	LastSubmitTime time.Time `yaml:"last_submit_time" json:"last_submit_time"`
+	Team           Team      `json:"team"             yaml:"team"`
+	Value          int64     `json:"value"            yaml:"value"`
+	LastSubmitTime time.Time `json:"last_submit_time" yaml:"last_submit_time"`
 }

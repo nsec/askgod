@@ -7,24 +7,24 @@ import (
 // URL: /1.0/scores
 // Access: admin
 
-// AdminScore represents a score entry in the database
+// AdminScore represents a score entry in the database.
 type AdminScore struct {
 	AdminScorePost `yaml:",inline"`
 
-	ID         int64     `yaml:"id" json:"id"`
-	SubmitTime time.Time `yaml:"submit_time" json:"submit_time"`
+	ID         int64     `json:"id"          yaml:"id"`
+	SubmitTime time.Time `json:"submit_time" yaml:"submit_time"`
 }
 
-// AdminScorePut represents the editable fields of a score entry in the database
+// AdminScorePut represents the editable fields of a score entry in the database.
 type AdminScorePut struct {
-	Value int64  `yaml:"value" json:"value"`
-	Notes string `yaml:"notes" json:"notes"`
+	Value int64  `json:"value" yaml:"value"`
+	Notes string `json:"notes" yaml:"notes"`
 }
 
-// AdminScorePost represents the fields allowed when creating a new score entry
+// AdminScorePost represents the fields allowed when creating a new score entry.
 type AdminScorePost struct {
 	AdminScorePut `yaml:",inline"`
 
-	TeamID int64 `yaml:"team_id" json:"team_id"`
-	FlagID int64 `yaml:"flag_id" json:"flag_id"`
+	TeamID int64 `json:"team_id" yaml:"team_id"`
+	FlagID int64 `json:"flag_id" yaml:"flag_id"`
 }

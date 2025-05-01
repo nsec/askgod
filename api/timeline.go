@@ -7,15 +7,15 @@ import (
 // URL: /1.0/timeline
 // Access: guest
 
-// TimelineEntry represents the timeline for a team
+// TimelineEntry represents the timeline for a team.
 type TimelineEntry struct {
-	Team  Team                 `yaml:"team" json:"team"`
-	Score []TimelineEntryScore `yaml:"score" json:"score"`
+	Team  Team                 `json:"team"  yaml:"team"`
+	Score []TimelineEntryScore `json:"score" yaml:"score"`
 }
 
-// TimelineEntryScore represents a score entry for a team
+// TimelineEntryScore represents a score entry for a team.
 type TimelineEntryScore struct {
-	SubmitTime time.Time `yaml:"submit_time" json:"submit_time"`
-	Value      int64     `yaml:"value" json:"value"`
-	Total      int64     `yaml:"total" json:"total"`
+	SubmitTime time.Time `json:"submit_time" yaml:"submit_time"`
+	Value      int64     `json:"value"       yaml:"value"`
+	Total      int64     `json:"total"       yaml:"total"`
 }

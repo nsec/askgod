@@ -8,40 +8,40 @@ import (
 // URL: /1.0/events
 // Access: various
 
-// Event represents an event entry (over websocket)
+// Event represents an event entry (over websocket).
 type Event struct {
-	Server    string          `yaml:"server" json:"server"`
-	Type      string          `yaml:"type" json:"type"`
-	Timestamp time.Time       `yaml:"timestamp" json:"timestamp"`
-	Metadata  json.RawMessage `yaml:"metadata" json:"metadata"`
+	Server    string          `json:"server"    yaml:"server"`
+	Type      string          `json:"type"      yaml:"type"`
+	Timestamp time.Time       `json:"timestamp" yaml:"timestamp"`
+	Metadata  json.RawMessage `json:"metadata"  yaml:"metadata"`
 }
 
-// EventLogging represents a logging type event entry (admin only)
+// EventLogging represents a logging type event entry (admin only).
 type EventLogging struct {
-	Message string            `yaml:"message" json:"message"`
-	Level   string            `yaml:"level" json:"level"`
-	Context map[string]string `yaml:"context" json:"context"`
+	Message string            `json:"message" yaml:"message"`
+	Level   string            `json:"level"   yaml:"level"`
+	Context map[string]string `json:"context" yaml:"context"`
 }
 
-// EventFlag represents a flag submission event entry (admin only)
+// EventFlag represents a flag submission event entry (admin only).
 type EventFlag struct {
-	Team AdminTeam  `yaml:"team" json:"team"`
-	Flag *AdminFlag `yaml:"flag" json:"flag"`
+	Team AdminTeam  `json:"team" yaml:"team"`
+	Flag *AdminFlag `json:"flag" yaml:"flag"`
 
-	Input string `yaml:"input" json:"input"`
-	Value int64  `yaml:"value" json:"value"`
-	Type  string `yaml:"type" json:"type"`
+	Input string `json:"input" yaml:"input"`
+	Value int64  `json:"value" yaml:"value"`
+	Type  string `json:"type"  yaml:"type"`
 }
 
-// EventTimeline represents a change to the timeline (guest only)
+// EventTimeline represents a change to the timeline (guest only).
 type EventTimeline struct {
-	TeamID int64               `yaml:"teamid" json:"teamid"`
-	Team   *TeamPut            `yaml:"team" json:"team"`
-	Score  *TimelineEntryScore `yaml:"score" json:"score"`
-	Type   string              `yaml:"type" json:"type"`
+	TeamID int64               `json:"teamid" yaml:"teamid"`
+	Team   *TeamPut            `json:"team"   yaml:"team"`
+	Score  *TimelineEntryScore `json:"score"  yaml:"score"`
+	Type   string              `json:"type"   yaml:"type"`
 }
 
-// EventInternal represents an internal syncronisation event
+// EventInternal represents an internal syncronisation event.
 type EventInternal struct {
-	Type string `yaml:"type" json:"type"`
+	Type string `json:"type" yaml:"type"`
 }
