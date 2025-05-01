@@ -22,9 +22,11 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-var eventHostname string
-var eventsLock sync.Mutex
-var eventListeners = make(map[string]*eventListener)
+var (
+	eventHostname  string
+	eventsLock     sync.Mutex
+	eventListeners = make(map[string]*eventListener)
+)
 
 type eventListener struct {
 	connection   *websocket.Conn
@@ -376,8 +378,7 @@ func (r *rest) forwardEvents(peer string) {
 }
 
 // EventsLogHandler represents a log15 handler for the /1.0/events API
-type EventsLogHandler struct {
-}
+type EventsLogHandler struct{}
 
 // Log send a log message through websocket
 func (h EventsLogHandler) Log(rec *log15.Record) error {
@@ -385,6 +386,7 @@ func (h EventsLogHandler) Log(rec *log15.Record) error {
 	r.eventSend("logging", api.EventLogging{
 		Message: rec.Msg,
 		Level:   rec.Lvl.String(),
-		Context: logContextMap(rec.Ctx)})
+		Context: logContextMap(rec.Ctx),
+	})
 	return nil
 }
