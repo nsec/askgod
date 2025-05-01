@@ -231,9 +231,10 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	}
 
 	score := api.TimelineEntryScore{
-		SubmitTime: time.Now(),
-		Value:      result.Value,
-		Total:      total,
+		SubmitTime:       time.Now(),
+		Value:            result.Value,
+		Total:            total,
+		FireworksTrigger: adminFlag.Tags["fireworks_trigger"],
 	}
 
 	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
