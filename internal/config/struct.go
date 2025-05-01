@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -14,39 +14,40 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-// Config represents the internal view of the configuration
+// Config represents the internal view of the configuration.
 type Config struct {
 	*api.Config
 	logger   log15.Logger
 	handlers []func(*Config)
 }
 
-// RegisterHandler makes it possible to register a function to be called on config changes
+// RegisterHandler makes it possible to register a function to be called on config changes.
 func (c *Config) RegisterHandler(handler func(*Config)) error {
 	c.handlers = append(c.handlers, handler)
+
 	return nil
 }
 
-func parseConfig(configPath string, conf interface{}) error {
+func parseConfig(configPath string, conf any) error {
 	// Read the file's content
-	content, err := ioutil.ReadFile(configPath)
+	content, err := os.ReadFile(configPath) //nolint:gosec
 	if err != nil {
-		return fmt.Errorf("Failed to read file content: %v", err)
+		return fmt.Errorf("failed to read file content: %w", err)
 	}
 
 	// Parse the yaml file
 	err = yaml.Unmarshal(content, conf)
 	if err != nil {
-		return fmt.Errorf("Failed to parse yaml: %v", err)
+		return fmt.Errorf("failed to parse yaml: %w", err)
 	}
 
 	return nil
 }
 
-// ReadConfigFile will return a Config struct from the content of a yaml file
+// ReadConfigFile will return a Config struct from the content of a yaml file.
 func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Config, error) {
 	if !utils.PathExists(configPath) {
-		return nil, fmt.Errorf("The configuration file doesn't exist: %s", configPath)
+		return nil, fmt.Errorf("the configuration file doesn't exist: %s", configPath)
 	}
 
 	logger.Info("Parsing configuration", log15.Ctx{"path": configPath})
@@ -63,12 +64,12 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
-			return nil, fmt.Errorf("Unable to setup fsnotify: %v", err)
+			return nil, fmt.Errorf("unable to setup fsnotify: %w", err)
 		}
 
 		err = watcher.Add(filepath.Dir(configPath))
 		if err != nil {
-			return nil, fmt.Errorf("Unable to setup fsnotify watch: %v", err)
+			return nil, fmt.Errorf("unable to setup fsnotify watch: %w", err)
 		}
 
 		pathDir := filepath.Dir(configPath)
@@ -94,7 +95,7 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 					// Parse the new ocnfig
 					err := parseConfig(configPath, conf.Config)
 					if err != nil {
-						logger.Error("Failed to read the new configuration", log15.Ctx{"path": configPath, "error": err})
+						logger.Error("failed to read the new configuration", log15.Ctx{"path": configPath, "error": err})
 					}
 
 					// Check if something changed
@@ -108,7 +109,7 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 						handler(&conf)
 					}
 				case err := <-watcher.Errors:
-					logger.Error("Got bad file notification", log15.Ctx{"error": err})
+					logger.Error("got bad file notification", log15.Ctx{"error": err})
 				}
 			}
 		}()
