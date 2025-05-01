@@ -5,6 +5,7 @@ go 1.23.7
 require (
 	github.com/armon/go-proxyproto v0.1.0
 	github.com/fsnotify/fsnotify v1.9.0
+	github.com/goccy/go-yaml v1.17.1
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/inconshreveable/log15 v2.16.0+incompatible
@@ -14,7 +15,6 @@ require (
 	github.com/pborman/uuid v1.2.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/urfave/cli/v2 v2.27.6
-	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -23,7 +23,6 @@ require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/kr/text v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
