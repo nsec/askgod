@@ -14,12 +14,14 @@ func (r *rest) getIP(request *http.Request) (*net.IP, error) {
 	clientIP, _, err := net.SplitHostPort(request.RemoteAddr)
 	if err != nil {
 		r.logger.Error("Unable to parse client address", log15.Ctx{"address": request.RemoteAddr, "error": err})
+
 		return nil, err
 	}
 
 	ip := net.ParseIP(clientIP)
 	if ip == nil {
 		r.logger.Error("Unable to parse client IP", log15.Ctx{"ip": clientIP, "error": err})
+
 		return nil, err
 	}
 
@@ -43,6 +45,7 @@ func (r *rest) hasAccess(level string, request *http.Request) bool {
 		_, subnet, err := net.ParseCIDR(entry)
 		if err != nil {
 			r.logger.Error("Unable to parse configured subnet", log15.Ctx{"subnet": entry, "error": err})
+
 			continue
 		}
 
@@ -60,6 +63,7 @@ func (r *rest) hasAccess(level string, request *http.Request) bool {
 		_, subnet, err := net.ParseCIDR(entry)
 		if err != nil {
 			r.logger.Error("Unable to parse configured subnet", log15.Ctx{"subnet": entry, "error": err})
+
 			continue
 		}
 
@@ -77,6 +81,7 @@ func (r *rest) hasAccess(level string, request *http.Request) bool {
 		_, subnet, err := net.ParseCIDR(entry)
 		if err != nil {
 			r.logger.Error("Unable to parse configured subnet", log15.Ctx{"subnet": entry, "error": err})
+
 			continue
 		}
 

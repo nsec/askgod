@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -44,6 +43,7 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 	if !r.isPeer(request) {
 		logger.Warn("Unauthorized attempt to send events")
 		r.errorResponse(403, "Forbidden", writer, request)
+
 		return
 	}
 
@@ -52,6 +52,7 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Error("Failed to setup websocket", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -62,10 +63,11 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 			break
 		}
 
-		var rawEvent interface{}
+		var rawEvent any
 		err = json.Unmarshal(data, &rawEvent)
 		if err != nil {
 			logger.Error("Received a broken event from peer", log15.Ctx{"error": err})
+
 			continue
 		}
 
@@ -76,22 +78,31 @@ func (r *rest) injectEvents(writer http.ResponseWriter, request *http.Request, l
 			conf, err := r.db.GetConfig()
 			if err != nil {
 				logger.Error("Failed to get new configuration", log15.Ctx{"error": err})
+
 				continue
 			}
 
 			// Save old config
-			oldConfig := r.config.Config.ConfigPut
+			oldConfig := r.config.ConfigPut
 			newConfig := conf
 
-			r.config.Config.ConfigPut = *newConfig
+			r.config.ConfigPut = *newConfig
 			logger.Info("Config updated", log15.Ctx{"old": oldConfig, "new": newConfig})
-			r.configHiddenTeams()
+
+			err = r.configHiddenTeams()
+			if err != nil {
+				logger.Error("Failed to update hidden teams", log15.Ctx{"error": err})
+
+				continue
+			}
+
 			continue
 		}
 
 		err = r.eventSendRaw(rawEvent)
 		if err != nil {
 			logger.Error("Failed to relay event from peer", log15.Ctx{"error": err})
+
 			continue
 		}
 	}
@@ -105,11 +116,13 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	if typeStr == "" {
 		logger.Warn("Events request without a type")
 		r.errorResponse(400, "Missing event type", writer, request)
+
 		return
 	}
 
 	if typeStr == "cluster" {
 		r.injectEvents(writer, request, logger)
+
 		return
 	}
 
@@ -120,6 +133,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 		if !utils.StringInSlice(entry, []string{"timeline", "logging", "flags"}) {
 			logger.Warn("Invalid event type", log15.Ctx{"type": entry})
 			r.errorResponse(400, "Invalid event type", writer, request)
+
 			return
 		}
 
@@ -127,6 +141,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 		if utils.StringInSlice(entry, []string{"logging", "flags"}) && !r.hasAccess("admin", request) {
 			logger.Warn("Unauthorized attempt to get events", log15.Ctx{"type": entry})
 			r.errorResponse(403, "Forbidden", writer, request)
+
 			return
 		}
 	}
@@ -136,6 +151,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	if err != nil {
 		logger.Error("Failed to setup websocket", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -144,6 +160,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -179,12 +196,12 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	delete(eventListeners, listener.id)
 	eventsLock.Unlock()
 
-	listener.connection.Close()
+	_ = listener.connection.Close()
 	r.logger.Debug("Disconnected events listener", log15.Ctx{"uuid": listener.id})
 }
 
-func (r *rest) eventSend(eventType string, eventMessage interface{}) error {
-	event := map[string]interface{}{}
+func (r *rest) eventSend(eventType string, eventMessage any) error {
+	event := map[string]any{}
 	event["type"] = eventType
 	event["timestamp"] = time.Now()
 	event["metadata"] = eventMessage
@@ -201,7 +218,7 @@ func (r *rest) eventSend(eventType string, eventMessage interface{}) error {
 	return r.eventSendRaw(event)
 }
 
-func (r *rest) eventSendRaw(raw interface{}) error {
+func (r *rest) eventSendRaw(raw any) error {
 	body, err := json.Marshal(raw)
 	if err != nil {
 		return err
@@ -264,13 +281,18 @@ func (r *rest) eventSendRaw(raw interface{}) error {
 	return nil
 }
 
-func logContextMap(ctx []interface{}) map[string]string {
+func logContextMap(ctx []any) map[string]string {
 	var key string
 	ctxMap := map[string]string{}
 
 	for _, entry := range ctx {
 		if key == "" {
-			key = entry.(string)
+			var ok bool
+
+			key, ok = entry.(string) //nolint:staticcheck
+			if !ok {
+				continue
+			}
 		} else {
 			ctxMap[key] = fmt.Sprintf("%v", entry)
 			key = ""
@@ -295,9 +317,10 @@ func (r *rest) forwardEvents(peer string) {
 	if r.config.Daemon.HTTPSCertificate != "" {
 		cert := r.config.Daemon.HTTPSCertificate
 		if !strings.Contains(cert, "\n") && utils.PathExists(cert) {
-			content, err := ioutil.ReadFile(cert)
+			content, err := os.ReadFile(cert) //nolint:gosec
 			if err != nil {
 				r.logger.Error("Failed to read cluster certificate", log15.Ctx{"error": err, "peer": peer})
+
 				return
 			}
 
@@ -314,12 +337,14 @@ func (r *rest) forwardEvents(peer string) {
 			block, remainder := pem.Decode([]byte(content))
 			if block == nil {
 				r.logger.Error("Failed to decode cluster certificate", log15.Ctx{"peer": peer})
+
 				return
 			}
 
 			crt, err := x509.ParseCertificate(block.Bytes)
 			if err != nil {
 				r.logger.Error("Failed to parse cluster certificate", log15.Ctx{"error": err, "peer": peer})
+
 				return
 			}
 
@@ -339,7 +364,6 @@ func (r *rest) forwardEvents(peer string) {
 
 		// Setup the pool
 		tlsConfig.RootCAs = caCertPool
-		tlsConfig.BuildNameToCertificate()
 	}
 
 	dialer := websocket.Dialer{
@@ -349,7 +373,7 @@ func (r *rest) forwardEvents(peer string) {
 	for i := 0; i < 20; i++ {
 		r.logger.Debug("Connecting to cluster peer", log15.Ctx{"peer": peer})
 
-		conn, _, err := dialer.Dial(peerURL, nil)
+		conn, _, err := dialer.Dial(peerURL, nil) //nolint:bodyclose
 		if err != nil {
 			r.logger.Warn("Failed to connect to cluster peer", log15.Ctx{"error": err, "peer": peer})
 		} else {
@@ -377,16 +401,17 @@ func (r *rest) forwardEvents(peer string) {
 	r.logger.Error("Giving up on cluster peer", log15.Ctx{"peer": peer})
 }
 
-// EventsLogHandler represents a log15 handler for the /1.0/events API
+// EventsLogHandler represents a log15 handler for the /1.0/events API.
 type EventsLogHandler struct{}
 
-// Log send a log message through websocket
-func (h EventsLogHandler) Log(rec *log15.Record) error {
+// Log send a log message through websocket.
+func (EventsLogHandler) Log(rec *log15.Record) error {
 	r := rest{}
-	r.eventSend("logging", api.EventLogging{
+	_ = r.eventSend("logging", api.EventLogging{
 		Message: rec.Msg,
 		Level:   rec.Lvl.String(),
 		Context: logContextMap(rec.Ctx),
 	})
+
 	return nil
 }

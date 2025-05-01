@@ -11,8 +11,8 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-func (r *rest) getConfig(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	resp := api.Config(*r.config.Config)
+func (r *rest) getConfig(writer http.ResponseWriter, request *http.Request, _ log15.Logger) {
+	resp := *r.config.Config
 	if resp.Daemon.HTTPSCertificate != "" {
 		resp.Daemon.HTTPSCertificate = "*****"
 	}
@@ -35,11 +35,12 @@ func (r *rest) updateConfig(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
 	// Save old config
-	oldConfig := r.config.Config.ConfigPut
+	oldConfig := r.config.ConfigPut
 	newConfig := req
 
 	// Attempt to update the database
@@ -47,16 +48,25 @@ func (r *rest) updateConfig(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Error("Failed to update the team", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
-	r.eventSend("internal", api.EventInternal{Type: "config-updated"})
-	r.config.Config.ConfigPut = newConfig
-	r.configHiddenTeams()
+	_ = r.eventSend("internal", api.EventInternal{Type: "config-updated"})
+	r.config.ConfigPut = newConfig
+
+	err = r.configHiddenTeams()
+	if err != nil {
+		logger.Error("Failed to refresh hidden teams", log15.Ctx{"error": err})
+		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
+		return
+	}
+
 	logger.Info("Config updated", log15.Ctx{"old": oldConfig, "new": newConfig})
 
 	// Tell everyone to reload
-	r.eventSend("timeline", api.EventTimeline{Type: "reload"})
+	_ = r.eventSend("timeline", api.EventTimeline{Type: "reload"})
 }
 
 func (r *rest) configHiddenTeams() error {
@@ -64,6 +74,7 @@ func (r *rest) configHiddenTeams() error {
 	teams, err := r.db.GetTeams()
 	if err != nil {
 		r.logger.Error("Unable to refresh hidden teams", log15.Ctx{"error": err})
+
 		return err
 	}
 

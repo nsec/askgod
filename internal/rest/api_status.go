@@ -8,7 +8,7 @@ import (
 	"github.com/nsec/askgod/api"
 )
 
-func (r *rest) getStatus(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
+func (r *rest) getStatus(writer http.ResponseWriter, request *http.Request, _ log15.Logger) {
 	resp := api.Status{
 		IsAdmin:   r.hasAccess("admin", request),
 		IsTeam:    r.hasAccess("team", request),

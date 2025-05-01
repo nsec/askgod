@@ -2,6 +2,7 @@ package rest
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/inconshreveable/log15"
@@ -14,6 +15,7 @@ func (r *rest) getTimeline(writer http.ResponseWriter, request *http.Request, lo
 	// If scoreboard hidden and not a team, show empty board
 	if r.config.Scoring.HideOthers && !r.hasAccess("team", request) {
 		r.jsonResponse([]api.TimelineEntry{}, writer, request)
+
 		return
 	}
 
@@ -22,6 +24,7 @@ func (r *rest) getTimeline(writer http.ResponseWriter, request *http.Request, lo
 	if err != nil {
 		logger.Error("Failed to get the timeline", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -32,6 +35,7 @@ func (r *rest) getTimeline(writer http.ResponseWriter, request *http.Request, lo
 		if err != nil {
 			logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 			r.errorResponse(500, "Internal Server Error", writer, request)
+
 			return
 		}
 
@@ -39,13 +43,15 @@ func (r *rest) getTimeline(writer http.ResponseWriter, request *http.Request, lo
 		var team *api.AdminTeam
 		if r.hasAccess("team", request) {
 			team, err = r.db.GetTeamForIP(*ip)
-			if err == sql.ErrNoRows {
+			if errors.Is(err, sql.ErrNoRows) {
 				logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 				r.errorResponse(404, "No team found for IP", writer, request)
+
 				return
 			} else if err != nil {
 				logger.Error("Failed to get the team", log15.Ctx{"error": err})
 				r.errorResponse(500, "Internal Server Error", writer, request)
+
 				return
 			}
 		}

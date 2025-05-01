@@ -3,6 +3,7 @@ package rest
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -22,18 +23,21 @@ func (r *rest) getTeam(writer http.ResponseWriter, request *http.Request, logger
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Look for a matching team
 	record, err := r.db.GetTeamForIP(*ip)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 		r.errorResponse(404, "No team found for IP", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -52,6 +56,7 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 	if !r.config.Teams.SelfRegister {
 		logger.Warn("Unauthorized attempt to self-register")
 		r.errorResponse(403, "Team self-registration disabled", writer, request)
+
 		return
 	}
 
@@ -61,6 +66,7 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -73,16 +79,14 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 
 		// Validate the character set
 		match, _ := regexp.MatchString("^[a-zA-Z0-9 /\\\\~!@#$%&*()\\-_+={}\\[\\];:',.?]*$", name)
-		if !match {
-			return false
-		}
 
-		return true
+		return match
 	}
 
 	if !validName(newTeam.Name) {
 		logger.Warn("Bad team name", log15.Ctx{"name": newTeam.Name})
 		r.errorResponse(400, "Bad team name", writer, request)
+
 		return
 	}
 
@@ -90,6 +94,7 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 	if len(newTeam.Country) != 2 || !match {
 		logger.Warn("Bad team country code", log15.Ctx{"country": newTeam.Country})
 		r.errorResponse(400, "Bad team country code", writer, request)
+
 		return
 	}
 
@@ -98,6 +103,7 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 		if err != nil {
 			logger.Warn("Bad team URL", log15.Ctx{"url": newTeam.Website})
 			r.errorResponse(400, "Bad team URL", writer, request)
+
 			return
 		}
 
@@ -109,18 +115,21 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Look for a matching team
 	team, err := r.db.GetTeamForIP(*ip)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 		r.errorResponse(404, "No team found for IP", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -129,18 +138,21 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 		if team.Name != "" && team.Name != newTeam.Name {
 			logger.Debug("Unauthorized attempt to change already set team property", log15.Ctx{"property": "name"})
 			r.errorResponse(400, "Team name is already set", writer, request)
+
 			return
 		}
 
 		if team.Country != "" && team.Country != newTeam.Country {
 			logger.Debug("Unauthorized attempt to change already set team property", log15.Ctx{"property": "country"})
 			r.errorResponse(400, "Team country is already set", writer, request)
+
 			return
 		}
 
 		if team.Website != "" && team.Website != newTeam.Website {
 			logger.Debug("Unauthorized attempt to change already set team property", log15.Ctx{"property": "website"})
 			r.errorResponse(400, "Team website is already set", writer, request)
+
 			return
 		}
 	}
@@ -159,10 +171,11 @@ func (r *rest) updateTeam(writer http.ResponseWriter, request *http.Request, log
 	if err != nil {
 		logger.Error("Failed to update the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &newRecord.TeamPut, Type: "team-updated"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &newRecord.TeamPut, Type: "team-updated"})
 	logger.Info("Team updated", log15.Ctx{"id": team.ID, "name": newRecord.Name, "country": newRecord.Country, "website": newRecord.Website})
 }
 
@@ -172,6 +185,7 @@ func (r *rest) adminGetTeams(writer http.ResponseWriter, request *http.Request, 
 	if err != nil {
 		logger.Error("Failed to query the team list", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -183,6 +197,7 @@ func (r *rest) adminCreateTeam(writer http.ResponseWriter, request *http.Request
 	bulkVar := request.FormValue("bulk")
 	if bulkVar == "1" {
 		r.adminCreateTeams(writer, request, logger)
+
 		return
 	}
 
@@ -192,6 +207,7 @@ func (r *rest) adminCreateTeam(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -200,10 +216,11 @@ func (r *rest) adminCreateTeam(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Error("Failed to create the team", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.AdminTeamPut.TeamPut, Type: "team-added"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.TeamPut, Type: "team-added"})
 	logger.Info("New team defined", log15.Ctx{"id": id, "subnets": newTeam.Subnets})
 }
 
@@ -214,6 +231,7 @@ func (r *rest) adminCreateTeams(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -223,10 +241,11 @@ func (r *rest) adminCreateTeams(writer http.ResponseWriter, request *http.Reques
 		if err != nil {
 			logger.Error("Failed to create the team", log15.Ctx{"error": err})
 			r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 			return
 		}
 
-		r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &team.AdminTeamPut.TeamPut, Type: "team-added"})
+		_ = r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &team.TeamPut, Type: "team-added"})
 		logger.Info("New team defined", log15.Ctx{"id": id, "subnets": team.Subnets})
 	}
 }
@@ -239,18 +258,21 @@ func (r *rest) adminGetTeam(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Warn("Invalid team ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid team ID provided", writer, request)
+
 		return
 	}
 
 	// Attempt to get the DB record
 	team, err := r.db.GetTeam(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid team ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid team ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -265,6 +287,7 @@ func (r *rest) adminUpdateTeam(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Invalid team ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid team ID provided", writer, request)
+
 		return
 	}
 
@@ -274,22 +297,25 @@ func (r *rest) adminUpdateTeam(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
 	// Attempt to update the database
 	err = r.db.UpdateTeam(id, newTeam)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid team ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid team ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to update the team", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.TeamPut, Type: "team-updated"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: id, Team: &newTeam.TeamPut, Type: "team-updated"})
 	logger.Info("Team updated", log15.Ctx{"id": id, "name": newTeam.Name, "country": newTeam.Country, "website": newTeam.Website})
 }
 
@@ -301,22 +327,25 @@ func (r *rest) adminDeleteTeam(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Invalid team ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid team ID provided", writer, request)
+
 		return
 	}
 
 	// Attempt to get the DB record
 	err = r.db.DeleteTeam(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid team ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid team ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to delete the team", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: id, Type: "team-removed"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: id, Type: "team-removed"})
 	logger.Info("Team deleted", log15.Ctx{"id": id})
 }
 
@@ -327,6 +356,7 @@ func (r *rest) adminClearTeams(writer http.ResponseWriter, request *http.Request
 	if emptyVar != "1" {
 		logger.Warn("Teams clear requested without empty=1")
 		r.errorResponse(400, "Teams clear requested without empty=1", writer, request)
+
 		return
 	}
 
@@ -335,6 +365,7 @@ func (r *rest) adminClearTeams(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Error("Failed to clear all teams", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 

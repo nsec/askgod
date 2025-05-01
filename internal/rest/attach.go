@@ -15,10 +15,10 @@ import (
 
 var clusterPeers []string
 
-// AttachFunctions attaches all the REST API functions to the provided router
-func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB, logger log15.Logger) error {
+// AttachFunctions attaches all the REST API functions to the provided router.
+func AttachFunctions(conf *config.Config, router *mux.Router, db *database.DB, logger log15.Logger) error {
 	r := rest{
-		config: config,
+		config: conf,
 		db:     db,
 		logger: logger,
 		router: router,
@@ -57,16 +57,18 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 	r.registerEndpoint("/1.0/teams/{id}", "admin", r.adminGetTeam, nil, r.adminUpdateTeam, r.adminDeleteTeam)
 
 	// Setup forwarder
-	for _, peer := range config.Daemon.ClusterPeers {
+	for _, peer := range conf.Daemon.ClusterPeers {
 		u, err := url.ParseRequestURI(peer)
 		if err != nil {
 			r.logger.Error("Unable to parse peer address", log15.Ctx{"peer": peer, "error": err})
+
 			return err
 		}
 
 		host, _, err := net.SplitHostPort(u.Host)
 		if err != nil {
 			r.logger.Error("Unable to parse peer host", log15.Ctx{"peer": peer, "error": err})
+
 			return err
 		}
 
@@ -77,6 +79,7 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 			addr, err := net.LookupHost(host)
 			if err != nil {
 				r.logger.Error("Unable to resolve peer to addr", log15.Ctx{"peer": peer, "error": err})
+
 				return err
 			}
 			clusterPeers = append(clusterPeers, addr...)
@@ -88,12 +91,13 @@ func AttachFunctions(config *config.Config, router *mux.Router, db *database.DB,
 	return nil
 }
 
-func (r *rest) registerEndpoint(url string, access string, funcGet, funcPost, funcPut, funcDelete func(writer http.ResponseWriter, request *http.Request, logger log15.Logger)) {
-	r.router.HandleFunc(url, func(writer http.ResponseWriter, request *http.Request) {
+func (r *rest) registerEndpoint(u string, access string, funcGet, funcPost, funcPut, funcDelete func(writer http.ResponseWriter, request *http.Request, logger log15.Logger)) {
+	r.router.HandleFunc(u, func(writer http.ResponseWriter, request *http.Request) {
 		metricRequests.Inc()
 
 		if !r.hasAccess(access, request) {
 			r.errorResponse(403, "Forbidden", writer, request)
+
 			return
 		}
 
@@ -104,35 +108,38 @@ func (r *rest) registerEndpoint(url string, access string, funcGet, funcPost, fu
 		r.processOrigin(writer, request)
 
 		// Process OPTIONS
-		if request.Method == "OPTIONS" {
+		if request.Method == http.MethodOptions {
 			return
 		}
 
 		switch request.Method {
-		case "GET":
+		case http.MethodGet:
 			if funcGet != nil {
 				funcGet(writer, request, logger)
+
 				return
 			}
-		case "POST":
+		case http.MethodPost:
 			if funcPost != nil {
 				funcPost(writer, request, logger)
+
 				return
 			}
-		case "PUT":
+		case http.MethodPut:
 			if funcPut != nil {
 				funcPut(writer, request, logger)
+
 				return
 			}
-		case "DELETE":
+		case http.MethodDelete:
 			if funcDelete != nil {
 				funcDelete(writer, request, logger)
+
 				return
 			}
 		}
 
 		r.logger.Info("Bad request (not implemented)", log15.Ctx{"method": request.Method, "url": request.URL, "client": request.RemoteAddr})
 		r.errorResponse(501, "Not Implemented", writer, request)
-		return
 	})
 }

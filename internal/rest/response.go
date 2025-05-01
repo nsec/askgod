@@ -23,7 +23,7 @@ func (r *rest) processOrigin(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-func (r *rest) jsonResponse(data interface{}, writer http.ResponseWriter, request *http.Request) {
+func (r *rest) jsonResponse(data any, writer http.ResponseWriter, _ *http.Request) {
 	// Set the content type to JSON
 	writer.Header().Set("Content-Type", "application/json")
 
@@ -33,14 +33,13 @@ func (r *rest) jsonResponse(data interface{}, writer http.ResponseWriter, reques
 	err := encoder.Encode(data)
 	if err != nil {
 		r.logger.Error("Failed to marshal response to JSON", log15.Ctx{"error": err})
-		http.Error(writer, "Internal Server Error", 500)
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+
 		return
 	}
-
-	return
 }
 
-func (r *rest) errorResponse(code int, message string, writer http.ResponseWriter, request *http.Request) {
+func (*rest) errorResponse(code int, message string, writer http.ResponseWriter, _ *http.Request) {
 	// Writer the response
 	http.Error(writer, message, code)
 }

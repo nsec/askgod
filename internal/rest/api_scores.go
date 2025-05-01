@@ -3,6 +3,7 @@ package rest
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -20,6 +21,7 @@ func (r *rest) adminGetScores(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Error("Failed to query the score list", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -31,6 +33,7 @@ func (r *rest) adminCreateScore(writer http.ResponseWriter, request *http.Reques
 	bulkVar := request.FormValue("bulk")
 	if bulkVar == "1" {
 		r.adminCreateScores(writer, request, logger)
+
 		return
 	}
 
@@ -40,6 +43,7 @@ func (r *rest) adminCreateScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -53,6 +57,7 @@ func (r *rest) adminCreateScores(writer http.ResponseWriter, request *http.Reque
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -69,6 +74,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 	if err != nil {
 		logger.Error("Failed to create the score", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return false
 	}
 
@@ -77,6 +83,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 	if err != nil {
 		logger.Error("Failed to get the team record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return false
 	}
 
@@ -85,16 +92,18 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 	if err != nil {
 		logger.Error("Failed to get the flag record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return false
 	}
 
-	r.eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid"})
+	_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid"})
 
 	// Send the timeline notification
 	total, err := r.db.GetTeamPoints(newScore.TeamID)
 	if err != nil {
 		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return false
 	}
 
@@ -104,7 +113,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 		Total:      total,
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("New score entry defined", log15.Ctx{"id": id, "flagid": newScore.FlagID, "teamid": newScore.TeamID, "value": newScore.Value})
 
@@ -119,18 +128,21 @@ func (r *rest) adminGetScore(writer http.ResponseWriter, request *http.Request, 
 	if err != nil {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid score ID provided", writer, request)
+
 		return
 	}
 
 	// Attempt to get the DB record
 	score, err := r.db.GetScore(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid score ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the score", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -145,6 +157,7 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid score ID provided", writer, request)
+
 		return
 	}
 
@@ -154,18 +167,21 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
 	// Get the current entry
 	currentScore, err := r.db.GetScore(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid score ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the score entry", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -174,6 +190,7 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -182,18 +199,21 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to get the team record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
 	// Attempt to update the database
 	err = r.db.UpdateScore(id, newScore)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid score ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to update the score", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -202,6 +222,7 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -211,7 +232,7 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 		Total:      totalAfter,
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Score entry updated", log15.Ctx{"id": id, "value": newScore.Value})
 }
@@ -224,18 +245,21 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid score ID provided", writer, request)
+
 		return
 	}
 
 	// Get the current entry
 	currentScore, err := r.db.GetScore(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid score ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the score entry", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -244,6 +268,7 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -252,18 +277,21 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to get the team record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
 	// Attempt to delete the DB record
 	err = r.db.DeleteScore(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid score ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid score ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to delete the score", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -272,6 +300,7 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -281,7 +310,7 @@ func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Reques
 		Total:      totalAfter,
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Score entry deleted", log15.Ctx{"id": id})
 }
@@ -293,6 +322,7 @@ func (r *rest) adminClearScores(writer http.ResponseWriter, request *http.Reques
 	if emptyVar != "1" {
 		logger.Warn("Scores clear requested without empty=1")
 		r.errorResponse(400, "Scores clear requested without empty=1", writer, request)
+
 		return
 	}
 
@@ -301,6 +331,7 @@ func (r *rest) adminClearScores(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Error("Failed to clear all scores", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 

@@ -3,6 +3,7 @@ package rest
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -21,18 +22,21 @@ func (r *rest) getTeamFlags(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Look for a matching team
 	team, err := r.db.GetTeamForIP(*ip)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 		r.errorResponse(404, "No team found for IP", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -41,6 +45,7 @@ func (r *rest) getTeamFlags(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Error("Failed to query the flag list", log15.Ctx{"error": err, "teamid": team.ID})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -55,6 +60,7 @@ func (r *rest) getTeamFlag(writer http.ResponseWriter, request *http.Request, lo
 	if err != nil {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid flag ID provided", writer, request)
+
 		return
 	}
 
@@ -63,18 +69,21 @@ func (r *rest) getTeamFlag(writer http.ResponseWriter, request *http.Request, lo
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Look for a matching team
 	team, err := r.db.GetTeamForIP(*ip)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 		r.errorResponse(404, "No team found for IP", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -83,6 +92,7 @@ func (r *rest) getTeamFlag(writer http.ResponseWriter, request *http.Request, lo
 	if err != nil {
 		logger.Error("Failed to query the flag", log15.Ctx{"error": err, "teamid": team.ID, "flagid": id})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -97,6 +107,7 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid flag ID provided", writer, request)
+
 		return
 	}
 
@@ -106,6 +117,7 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -113,6 +125,7 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if len(flag.Notes) > 1000 {
 		logger.Warn("Note is too long")
 		r.errorResponse(400, "Note is too long", writer, request)
+
 		return
 	}
 
@@ -121,18 +134,21 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Look for a matching team
 	team, err := r.db.GetTeamForIP(*ip)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 		r.errorResponse(404, "No team found for IP", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
@@ -141,6 +157,7 @@ func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Error("Failed to update the flag", log15.Ctx{"error": err, "teamid": team.ID, "flagid": id})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 }
@@ -149,6 +166,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	// Check if read-only
 	if r.config.Scoring.ReadOnly {
 		r.errorResponse(403, "Flag submission isn't allowed at this time", writer, request)
+
 		return
 	}
 
@@ -158,6 +176,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -165,6 +184,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if len(flag.Notes) > 1000 {
 		logger.Warn("Note is too long")
 		r.errorResponse(400, "Note is too long", writer, request)
+
 		return
 	}
 
@@ -173,60 +193,71 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	if err != nil {
 		logger.Error("Failed to get the client's IP", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Look for a matching team
 	team, err := r.db.GetTeamForIP(*ip)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("No team found for IP", log15.Ctx{"ip": ip.String()})
 		r.errorResponse(404, "No team found for IP", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the team", log15.Ctx{"error": err})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
 	// Check that the team is configured
 	if team.Name == "" || team.Country == "" {
-		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "unconfigured").Inc()
+		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "unconfigured").Inc()
 		logger.Debug("Unconfigured team tried to submit flag", log15.Ctx{"teamid": team.ID})
 		r.errorResponse(400, "Team name and country are required to participate", writer, request)
+
 		return
 	}
 
 	// Submit the flag
 	result, adminFlag, err := r.db.SubmitTeamFlag(team.ID, flag)
-	if err == sql.ErrNoRows {
-		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "invalid").Inc()
-		r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "invalid").Inc()
+		_ = r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
 		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "Invalid flag submitted", writer, request)
+
 		return
-	} else if err == os.ErrExist {
-		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "duplicate").Inc()
-		r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
+
+	case errors.Is(err, os.ErrExist):
+		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "duplicate").Inc()
+		_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
 		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
 		r.errorResponse(400, "The flag was already submitted", writer, request)
+
 		return
-	} else if err != nil {
-		metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "error").Inc()
+
+	case err != nil:
+		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "error").Inc()
 		logger.Error("Failed to submit the flag", log15.Ctx{"error": err, "teamid": team.ID})
 		r.errorResponse(500, "Internal Server Error", writer, request)
+
 		return
 	}
 
-	metricSubmitTeam.WithLabelValues(fmt.Sprintf("%d", team.ID), "valid").Inc()
+	metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "valid").Inc()
 
 	// Send the flag notification
-	r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
+	_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
 
 	// Send the timeline notification
 	total, err := r.db.GetTeamPoints(team.ID)
 	if err != nil {
 		logger.Error("Failed to get the team score record", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -236,7 +267,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		Total:      total,
 	}
 
-	r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.AdminTeamPut.TeamPut, Score: &score, Type: "score-updated"})
+	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
 
 	logger.Info("Correct flag submitted", log15.Ctx{"teamid": team.ID, "flagid": result.ID, "value": result.Value, "flag": flag.Flag})
 	r.jsonResponse(result, writer, request)
@@ -248,6 +279,7 @@ func (r *rest) adminGetFlags(writer http.ResponseWriter, request *http.Request, 
 	if err != nil {
 		logger.Error("Failed to query the flag list", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -259,6 +291,7 @@ func (r *rest) adminCreateFlag(writer http.ResponseWriter, request *http.Request
 	bulkVar := request.FormValue("bulk")
 	if bulkVar == "1" {
 		r.adminCreateFlags(writer, request, logger)
+
 		return
 	}
 
@@ -268,6 +301,7 @@ func (r *rest) adminCreateFlag(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -276,6 +310,7 @@ func (r *rest) adminCreateFlag(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Error("Failed to create the flag", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -289,6 +324,7 @@ func (r *rest) adminCreateFlags(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
@@ -298,6 +334,7 @@ func (r *rest) adminCreateFlags(writer http.ResponseWriter, request *http.Reques
 		if err != nil {
 			logger.Error("Failed to create the flag", log15.Ctx{"error": err})
 			r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 			return
 		}
 
@@ -313,18 +350,21 @@ func (r *rest) adminGetFlag(writer http.ResponseWriter, request *http.Request, l
 	if err != nil {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid flag ID provided", writer, request)
+
 		return
 	}
 
 	// Attempt to get the DB record
 	flag, err := r.db.GetFlag(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid flag ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to get the flag", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -339,6 +379,7 @@ func (r *rest) adminUpdateFlag(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid flag ID provided", writer, request)
+
 		return
 	}
 
@@ -348,18 +389,21 @@ func (r *rest) adminUpdateFlag(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Malformed JSON provided", log15.Ctx{"error": err})
 		r.errorResponse(400, "Malformed JSON provided", writer, request)
+
 		return
 	}
 
 	// Attempt to update the database
 	err = r.db.UpdateFlag(id, newFlag)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid flag ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to update the flag", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -374,18 +418,21 @@ func (r *rest) adminDeleteFlag(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(400, "Invalid flag ID provided", writer, request)
+
 		return
 	}
 
 	// Attempt to get the DB record
 	err = r.db.DeleteFlag(id)
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		logger.Warn("Invalid flag ID provided", log15.Ctx{"id": idVar})
 		r.errorResponse(404, "Invalid flag ID provided", writer, request)
+
 		return
 	} else if err != nil {
 		logger.Error("Failed to delete the flag", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
@@ -399,6 +446,7 @@ func (r *rest) adminClearFlags(writer http.ResponseWriter, request *http.Request
 	if emptyVar != "1" {
 		logger.Warn("Flags clear requested without empty=1")
 		r.errorResponse(400, "Flags clear requested without empty=1", writer, request)
+
 		return
 	}
 
@@ -407,6 +455,7 @@ func (r *rest) adminClearFlags(writer http.ResponseWriter, request *http.Request
 	if err != nil {
 		logger.Error("Failed to clear all flags", log15.Ctx{"error": err})
 		r.errorResponse(500, fmt.Sprintf("%v", err), writer, request)
+
 		return
 	}
 
