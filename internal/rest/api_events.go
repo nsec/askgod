@@ -12,10 +12,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	"github.com/inconshreveable/log15"
 	"github.com/lxc/incus/v6/shared/ws"
-	"github.com/pborman/uuid"
 
 	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"
@@ -179,7 +179,7 @@ func (r *rest) getEvents(writer http.ResponseWriter, request *http.Request, logg
 	// Prepare the listener
 	listener.active = make(chan bool, 1)
 	listener.connection = c
-	listener.id = uuid.NewRandom().String()
+	listener.id = uuid.New().String()
 	listener.messageTypes = eventTypes
 	listener.teamid = teamid
 
@@ -380,7 +380,7 @@ func (r *rest) forwardEvents(peer string) {
 			listener := eventListener{
 				connection: conn,
 				active:     make(chan bool, 1),
-				id:         uuid.NewRandom().String(),
+				id:         uuid.New().String(),
 				peer:       true,
 				teamid:     -1,
 			}

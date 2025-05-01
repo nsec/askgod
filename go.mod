@@ -6,12 +6,12 @@ require (
 	github.com/armon/go-proxyproto v0.1.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/goccy/go-yaml v1.17.1
+	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/inconshreveable/log15 v2.16.0+incompatible
 	github.com/lib/pq v1.10.9
 	github.com/lxc/incus/v6 v6.12.0
 	github.com/olekukonko/tablewriter v0.0.5
-	github.com/pborman/uuid v1.2.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/urfave/cli/v2 v2.27.6
 )
@@ -21,7 +21,6 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
