@@ -1,0 +1,52 @@
+name: Tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  code-tests:
+    name: Code
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Differential ShellCheck requires full git history
+          fetch-depth: 0
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        if: github.event_name == 'pull_request'
+
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Fix repository permissions
+        run: |
+          sudo chown -R $(id -u):$(id -g) .
+
+      - name: Check compatible min Go version
+        run: |
+          go mod tidy
+
+      - name: Download go dependencies
+        run: |
+          go mod download
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v7
+
+      - name: Run test build
+        run: |
+          make
+
+      - name: Run unit tests
+        run: |
+          go test -v ./...
