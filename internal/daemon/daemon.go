@@ -4,12 +4,13 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/armon/go-proxyproto"
 	"github.com/gorilla/mux"
@@ -22,7 +23,7 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-// Daemon is the main struct for all daemon functions
+// Daemon is the main struct for all daemon functions.
 type Daemon struct {
 	// Configuration
 	configPath string
@@ -38,19 +39,19 @@ type Daemon struct {
 	logger log15.Logger
 }
 
-// NewDaemon returns an initialized Daemon struct
+// NewDaemon returns an initialized Daemon struct.
 func NewDaemon(configPath string) (*Daemon, error) {
 	d := Daemon{
 		configPath: configPath,
 		logger:     log15.New(),
 	}
 
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 
 	return &d, nil
 }
 
-// Run starts the daemon
+// Run starts the daemon.
 func (d *Daemon) Run() error {
 	d.logger.Info("Starting askgod daemon")
 
@@ -107,6 +108,7 @@ func (d *Daemon) Run() error {
 		err := d.db.UpdateConfig(d.config.ConfigPut)
 		if err != nil {
 			d.logger.Info("Failed to add config.")
+
 			return err
 		}
 
@@ -116,10 +118,11 @@ func (d *Daemon) Run() error {
 		}
 	} else if err != nil {
 		d.logger.Info("Failed to get config.")
+
 		return err
 	}
 
-	d.config.Config.ConfigPut = *dbConf
+	d.config.ConfigPut = *dbConf
 
 	// Setup the REST API
 	d.router = mux.NewRouter()
@@ -148,7 +151,14 @@ func (d *Daemon) Run() error {
 
 		d.logger.Info("Binding HTTP", log15.Ctx{"port": d.config.Daemon.HTTPPort})
 		go func() {
-			err := http.Serve(socket, d.router)
+			server := &http.Server{
+				Handler: d.router,
+
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 0,
+			}
+
+			err := server.Serve(socket)
 			if err != nil {
 				chServers <- err
 				close(chServers)
@@ -160,7 +170,7 @@ func (d *Daemon) Run() error {
 		// Load the X509 certificates
 		cert := d.config.Daemon.HTTPSCertificate
 		if !strings.Contains(cert, "\n") && utils.PathExists(cert) {
-			content, err := ioutil.ReadFile(cert)
+			content, err := os.ReadFile(cert) //nolint:gosec
 			if err != nil {
 				return err
 			}
@@ -170,7 +180,7 @@ func (d *Daemon) Run() error {
 
 		key := d.config.Daemon.HTTPSKey
 		if !strings.Contains(key, "\n") && utils.PathExists(key) {
-			content, err := ioutil.ReadFile(key)
+			content, err := os.ReadFile(key) //nolint:gosec
 			if err != nil {
 				return err
 			}
@@ -188,7 +198,6 @@ func (d *Daemon) Run() error {
 			Certificates: []tls.Certificate{x509},
 			MinVersion:   tls.VersionTLS13,
 		}
-		tlsConfig.BuildNameToCertificate()
 
 		// Prepare the TCP socket
 		socket, err := net.Listen("tcp", fmt.Sprintf(":%d", d.config.Daemon.HTTPSPort))
@@ -206,7 +215,14 @@ func (d *Daemon) Run() error {
 
 		d.logger.Info("Binding HTTPs", log15.Ctx{"port": d.config.Daemon.HTTPSPort})
 		go func() {
-			err := http.Serve(socket, d.router)
+			server := &http.Server{
+				Handler: d.router,
+
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 0,
+			}
+
+			err := server.Serve(socket)
 			if err != nil {
 				chServers <- err
 				close(chServers)
@@ -226,7 +242,14 @@ func (d *Daemon) Run() error {
 			router := mux.NewRouter()
 			router.Handle("/metrics", promhttp.Handler())
 
-			err := http.Serve(socket, router)
+			server := &http.Server{
+				Handler: d.router,
+
+				ReadTimeout:  10 * time.Second,
+				WriteTimeout: 0,
+			}
+
+			err := server.Serve(socket)
 			if err != nil {
 				chServers <- err
 				close(chServers)
