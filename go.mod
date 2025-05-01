@@ -6,7 +6,6 @@ require (
 	github.com/armon/go-proxyproto v0.1.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/goccy/go-yaml v1.17.1
-	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/websocket v1.5.3
 	github.com/inconshreveable/log15 v2.16.0+incompatible
 	github.com/lib/pq v1.10.9

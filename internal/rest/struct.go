@@ -1,7 +1,8 @@
 package rest
 
 import (
-	"github.com/gorilla/mux"
+	"net/http"
+
 	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/internal/config"
@@ -12,6 +13,6 @@ type rest struct {
 	config      *config.Config
 	db          *database.DB
 	logger      log15.Logger
-	router      *mux.Router
+	router      *http.ServeMux
 	hiddenTeams []int64
 }

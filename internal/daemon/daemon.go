@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/armon/go-proxyproto"
-	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -33,7 +32,7 @@ type Daemon struct {
 	db *database.DB
 
 	// Request router
-	router *mux.Router
+	router *http.ServeMux
 
 	// Log handler
 	logger log15.Logger
@@ -125,7 +124,7 @@ func (d *Daemon) Run() error {
 	d.config.ConfigPut = *dbConf
 
 	// Setup the REST API
-	d.router = mux.NewRouter()
+	d.router = http.NewServeMux()
 	err = rest.AttachFunctions(
 		d.config,
 		d.router,
@@ -239,7 +238,7 @@ func (d *Daemon) Run() error {
 
 		d.logger.Info("Binding Prometheus", log15.Ctx{"port": d.config.Daemon.PrometheusPort})
 		go func() {
-			router := mux.NewRouter()
+			router := http.NewServeMux()
 			router.Handle("/metrics", promhttp.Handler())
 
 			server := &http.Server{

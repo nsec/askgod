@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/api"
@@ -121,7 +120,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 }
 
 func (r *rest) adminGetScore(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -150,7 +149,7 @@ func (r *rest) adminGetScore(writer http.ResponseWriter, request *http.Request, 
 }
 
 func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -238,7 +237,7 @@ func (r *rest) adminUpdateScore(writer http.ResponseWriter, request *http.Reques
 }
 
 func (r *rest) adminDeleteScore(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)

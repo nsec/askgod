@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/api"
@@ -251,7 +250,7 @@ func (r *rest) adminCreateTeams(writer http.ResponseWriter, request *http.Reques
 }
 
 func (r *rest) adminGetTeam(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -280,7 +279,7 @@ func (r *rest) adminGetTeam(writer http.ResponseWriter, request *http.Request, l
 }
 
 func (r *rest) adminUpdateTeam(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -320,7 +319,7 @@ func (r *rest) adminUpdateTeam(writer http.ResponseWriter, request *http.Request
 }
 
 func (r *rest) adminDeleteTeam(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)

@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/internal/config"
@@ -16,7 +15,7 @@ import (
 var clusterPeers []string
 
 // AttachFunctions attaches all the REST API functions to the provided router.
-func AttachFunctions(conf *config.Config, router *mux.Router, db *database.DB, logger log15.Logger) error {
+func AttachFunctions(conf *config.Config, router *http.ServeMux, db *database.DB, logger log15.Logger) error {
 	r := rest{
 		config: conf,
 		db:     db,

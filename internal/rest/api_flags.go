@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorilla/mux"
 	"github.com/inconshreveable/log15"
 
 	"github.com/nsec/askgod/api"
@@ -53,7 +52,7 @@ func (r *rest) getTeamFlags(writer http.ResponseWriter, request *http.Request, l
 }
 
 func (r *rest) getTeamFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -100,7 +99,7 @@ func (r *rest) getTeamFlag(writer http.ResponseWriter, request *http.Request, lo
 }
 
 func (r *rest) updateTeamFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -343,7 +342,7 @@ func (r *rest) adminCreateFlags(writer http.ResponseWriter, request *http.Reques
 }
 
 func (r *rest) adminGetFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -372,7 +371,7 @@ func (r *rest) adminGetFlag(writer http.ResponseWriter, request *http.Request, l
 }
 
 func (r *rest) adminUpdateFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
@@ -411,7 +410,7 @@ func (r *rest) adminUpdateFlag(writer http.ResponseWriter, request *http.Request
 }
 
 func (r *rest) adminDeleteFlag(writer http.ResponseWriter, request *http.Request, logger log15.Logger) {
-	idVar := mux.Vars(request)["id"]
+	idVar := request.PathValue("id")
 
 	// Convert the provided id to int
 	id, err := strconv.ParseInt(idVar, 10, 64)
