@@ -114,7 +114,7 @@ func (db *DB) SubmitTeamFlag(teamid int64, flag api.FlagPost) (*api.Flag, *api.A
 	err = db.QueryRow("SELECT id FROM score WHERE teamid=$1 AND flagid=$2;", teamid, row.ID).Scan(&id)
 	if err == nil {
 		return nil, &row, os.ErrExist
-	} else if errors.Is(err, sql.ErrNoRows) {
+	} else if !errors.Is(err, sql.ErrNoRows) {
 		return nil, nil, err
 	}
 
