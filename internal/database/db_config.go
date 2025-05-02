@@ -46,6 +46,7 @@ func (db *DB) GetConfig() (*api.ConfigPut, error) {
 			EventName:  dbConfig["scoring.event_name"],
 			HideOthers: dbConfig["scoring.hide_others"] == "true",
 			ReadOnly:   dbConfig["scoring.read_only"] == "true",
+			PublicTags: strings.Split(dbConfig["scoring.public_tags"], ","),
 		},
 		Teams: api.ConfigTeams{
 			SelfRegister: dbConfig["teams.self_register"] == "true",
@@ -92,6 +93,7 @@ func (db *DB) UpdateConfig(config api.ConfigPut) error {
 		"scoring.event_name":  config.Scoring.EventName,
 		"scoring.hide_others": strconv.FormatBool(config.Scoring.HideOthers),
 		"scoring.read_only":   strconv.FormatBool(config.Scoring.ReadOnly),
+		"scoring.public_tags": strings.Join(config.Scoring.PublicTags, ","),
 		"teams.self_register": strconv.FormatBool(config.Teams.SelfRegister),
 		"teams.self_update":   strconv.FormatBool(config.Teams.SelfUpdate),
 		"teams.hidden":        strings.Join(config.Teams.Hidden, ","),

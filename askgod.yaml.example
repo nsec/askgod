@@ -61,6 +61,9 @@ scoring:
   # Disable the submission of new flags
   read_only: false
 
+  # List of public tags to be sent to the scoreboard/timeline
+  public_tags:
+
 # Team configuration
 teams:
   # The team can select its initial details (but not update afterwards)

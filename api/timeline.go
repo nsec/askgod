@@ -15,7 +15,8 @@ type TimelineEntry struct {
 
 // TimelineEntryScore represents a score entry for a team.
 type TimelineEntryScore struct {
-	SubmitTime time.Time `json:"submit_time" yaml:"submit_time"`
-	Value      int64     `json:"value"       yaml:"value"`
-	Total      int64     `json:"total"       yaml:"total"`
+	SubmitTime time.Time         `json:"submit_time" yaml:"submit_time"`
+	Value      int64             `json:"value"       yaml:"value"`
+	Total      int64             `json:"total"       yaml:"total"`
+	Tags       map[string]string `json:"tags"        yaml:"tags"`
 }

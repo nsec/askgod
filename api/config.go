@@ -44,9 +44,10 @@ type ConfigDatabase struct {
 
 // ConfigScoring represents the Daemon part of the Askgod configuration.
 type ConfigScoring struct {
-	EventName  string `json:"event_name"  yaml:"event_name"`
-	HideOthers bool   `json:"hide_others" yaml:"hide_others"`
-	ReadOnly   bool   `json:"read_only"   yaml:"read_only"`
+	EventName  string   `json:"event_name"  yaml:"event_name"`
+	HideOthers bool     `json:"hide_others" yaml:"hide_others"`
+	ReadOnly   bool     `json:"read_only"   yaml:"read_only"`
+	PublicTags []string `json:"public_tags" yaml:"public_tags"`
 }
 
 // ConfigTeams represents the Daemon part of the Askgod configuration.
