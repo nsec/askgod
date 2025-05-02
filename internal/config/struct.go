@@ -17,6 +17,7 @@ import (
 // Config represents the internal view of the configuration.
 type Config struct {
 	*api.Config
+
 	logger   log15.Logger
 	handlers []func(*Config)
 }
@@ -28,7 +29,7 @@ func (c *Config) RegisterHandler(handler func(*Config)) error {
 	return nil
 }
 
-func parseConfig(configPath string, conf any) error {
+func parseConfig(configPath string, conf *api.Config) error {
 	// Read the file's content
 	content, err := os.ReadFile(configPath) //nolint:gosec
 	if err != nil {
@@ -52,8 +53,8 @@ func ReadConfigFile(configPath string, monitor bool, logger log15.Logger) (*Conf
 
 	logger.Info("Parsing configuration", log15.Ctx{"path": configPath})
 
-	conf := Config{logger: logger}
-	err := parseConfig(configPath, &conf.Config)
+	conf := Config{logger: logger, Config: &api.Config{}}
+	err := parseConfig(configPath, conf.Config)
 	if err != nil {
 		return nil, err
 	}
