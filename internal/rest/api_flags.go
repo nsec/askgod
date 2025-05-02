@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"slices"
 	"strconv"
 	"time"
 
@@ -260,10 +261,19 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
+	tags := make(map[string]string)
+
+	for key, value := range adminFlag.Tags {
+		if slices.Contains(r.config.Scoring.PublicTags, key) {
+			tags[key] = value
+		}
+	}
+
 	score := api.TimelineEntryScore{
 		SubmitTime: time.Now(),
 		Value:      result.Value,
 		Total:      total,
+		Tags:       tags,
 	}
 
 	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
