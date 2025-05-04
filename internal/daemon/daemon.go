@@ -242,7 +242,7 @@ func (d *Daemon) Run() error {
 			router.Handle("/metrics", promhttp.Handler())
 
 			server := &http.Server{
-				Handler: d.router,
+				Handler: router,
 
 				ReadTimeout:  10 * time.Second,
 				WriteTimeout: 0,
