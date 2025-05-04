@@ -1,6 +1,6 @@
 default: linux windows macos
 
-client: linux-client linux-client-arm macos-client macos-client-arm windows-client
+client: linux-client linux-client-arm macos-client macos-client-arm windows-client windows-client-arm
 server: linux-server macos-server windows-server
 
 linux: linux-client linux-client-arm linux-server
@@ -20,7 +20,7 @@ linux-client-arm:
 	GOOS=linux GOARCH=arm64 go get -v ./cmd/askgod
 	cd bin/linux-arm ; CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build ../../cmd/askgod
 
-windows: windows-client windows-server
+windows: windows-client windows-client-arm windows-server
 
 windows-server:
 	mkdir -p bin/windows
@@ -31,6 +31,11 @@ windows-client:
 	mkdir -p bin/windows
 	GOOS=windows GOARCH=amd64 go get -v ./cmd/askgod
 	cd bin/windows ; CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build ../../cmd/askgod
+
+windows-client-arm:
+	mkdir -p bin/windows-arm
+	GOOS=windows GOARCH=arm64 go get -v ./cmd/askgod
+	cd bin/windows-arm ; CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build ../../cmd/askgod
 
 macos: macos-client macos-client-arm macos-server
 
