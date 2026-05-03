@@ -17,7 +17,6 @@ func main() {
 	app.Usage = "CTF scoring system - server"
 	app.ArgsUsage = "<config>"
 	app.HideVersion = true
-	app.HideHelp = true
 	app.EnableShellCompletion = true
 
 	app.Action = func(ctx context.Context, cmd *cli.Command) error {

@@ -15,7 +15,6 @@ func main() {
 	app.Name = "askgod"
 	app.Usage = "CTF scoring system - client"
 	app.HideVersion = true
-	app.HideHelp = true
 	app.EnableShellCompletion = true
 
 	app.Flags = []cli.Flag{
