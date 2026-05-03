@@ -11,6 +11,7 @@ import (
 
 	"github.com/nsec/askgod/internal/config"
 	"github.com/nsec/askgod/internal/database"
+	"github.com/nsec/askgod/internal/mcp"
 )
 
 var clusterPeers []string
@@ -55,6 +56,16 @@ func AttachFunctions(ctx context.Context, conf *config.Config, router *http.Serv
 
 	r.registerEndpoint("/1.0/teams", "admin", r.adminGetTeams, r.adminCreateTeam, nil, r.adminClearTeams)
 	r.registerEndpoint("/1.0/teams/{id}", "admin", r.adminGetTeam, nil, r.adminUpdateTeam, r.adminDeleteTeam)
+
+	// MCP server endpoint (disabled by default)
+	if conf.MCP {
+		r.logger.Info("Starting the MCP server")
+		mcpServer := mcp.NewMCP(r.router, logger.New("component", "mcp"))
+
+		r.registerEndpoint("/mcp", "team", nil, func(writer http.ResponseWriter, request *http.Request, _ log15.Logger) {
+			mcpServer.ServeHTTP(writer, request)
+		}, nil, nil)
+	}
 
 	// Setup forwarder
 	for _, peer := range conf.Daemon.ClusterPeers {

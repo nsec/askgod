@@ -30,7 +30,7 @@ func (db *DB) GetTeamFlags(ctx context.Context, teamid int64) ([]api.Flag, error
 	resp := []api.Flag{}
 
 	// Query all the scores from the database
-	rows, err := db.QueryContext(ctx, "SELECT score.flagid, flag.description, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 ORDER BY score.submit_time ASC;", teamid)
+	rows, err := db.QueryContext(ctx, "SELECT score.flagid, flag.description, score.value, score.notes, score.source, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 ORDER BY score.submit_time ASC;", teamid)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func (db *DB) GetTeamFlags(ctx context.Context, teamid int64) ([]api.Flag, error
 	for rows.Next() {
 		row := api.Flag{}
 
-		err := rows.Scan(&row.ID, &row.Description, &row.Value, &row.Notes, &row.SubmitTime, &row.ReturnString)
+		err := rows.Scan(&row.ID, &row.Description, &row.Value, &row.Notes, &row.Source, &row.SubmitTime, &row.ReturnString)
 		if err != nil {
 			return nil, err
 		}
@@ -63,8 +63,8 @@ func (db *DB) GetTeamFlag(ctx context.Context, teamid int64, id int64) (*api.Fla
 	resp := api.Flag{}
 
 	// Query all the scores from the database
-	err := db.QueryRowContext(ctx, "SELECT score.flagid, flag.description, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 AND score.flagid=$2 ORDER BY score.submit_time ASC;", teamid, id).Scan(
-		&resp.ID, &resp.Description, &resp.Value, &resp.Notes, &resp.SubmitTime, &resp.ReturnString)
+	err := db.QueryRowContext(ctx, "SELECT score.flagid, flag.description, score.value, score.notes, score.source, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.teamid=$1 AND score.flagid=$2 ORDER BY score.submit_time ASC;", teamid, id).Scan(
+		&resp.ID, &resp.Description, &resp.Value, &resp.Notes, &resp.Source, &resp.SubmitTime, &resp.ReturnString)
 	if err != nil {
 		return nil, err
 	}
@@ -124,8 +124,8 @@ func (db *DB) SubmitTeamFlag(ctx context.Context, teamid int64, flag api.FlagPos
 	// Add the flag
 	id = -1
 
-	err = db.QueryRowContext(ctx, "INSERT INTO score (teamid, flagid, value, notes, submit_time) VALUES ($1, $2, $3, $4, $5) RETURNING id;",
-		teamid, row.ID, row.Value, flag.Notes, time.Now()).Scan(&id)
+	err = db.QueryRowContext(ctx, "INSERT INTO score (teamid, flagid, value, notes, submit_time, source) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id;",
+		teamid, row.ID, row.Value, flag.Notes, time.Now(), flag.Source).Scan(&id)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -133,8 +133,8 @@ func (db *DB) SubmitTeamFlag(ctx context.Context, teamid int64, flag api.FlagPos
 	// Query the new entry
 	result := api.Flag{}
 
-	err = db.QueryRowContext(ctx, "SELECT score.flagid, flag.description, score.value, score.notes, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.id=$1;", id).Scan(
-		&result.ID, &result.Description, &result.Value, &result.Notes, &result.SubmitTime, &result.ReturnString)
+	err = db.QueryRowContext(ctx, "SELECT score.flagid, flag.description, score.value, score.notes, score.source, score.submit_time, flag.return_string FROM score LEFT JOIN flag ON flag.id=score.flagid WHERE score.id=$1;", id).Scan(
+		&result.ID, &result.Description, &result.Value, &result.Notes, &result.Source, &result.SubmitTime, &result.ReturnString)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -148,7 +148,7 @@ func (db *DB) GetScores(ctx context.Context) ([]api.AdminScore, error) {
 	resp := []api.AdminScore{}
 
 	// Query all the scores from the database
-	rows, err := db.QueryContext(ctx, "SELECT id, teamid, flagid, value, notes, submit_time FROM score ORDER BY id ASC;")
+	rows, err := db.QueryContext(ctx, "SELECT id, teamid, flagid, value, notes, source, submit_time FROM score ORDER BY id ASC;")
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (db *DB) GetScores(ctx context.Context) ([]api.AdminScore, error) {
 	for rows.Next() {
 		row := api.AdminScore{}
 
-		err := rows.Scan(&row.ID, &row.TeamID, &row.FlagID, &row.Value, &row.Notes, &row.SubmitTime)
+		err := rows.Scan(&row.ID, &row.TeamID, &row.FlagID, &row.Value, &row.Notes, &row.Source, &row.SubmitTime)
 		if err != nil {
 			return nil, err
 		}
@@ -180,8 +180,8 @@ func (db *DB) GetScore(ctx context.Context, id int64) (*api.AdminScore, error) {
 	// Query the database entry
 	row := api.AdminScore{}
 
-	err := db.QueryRowContext(ctx, "SELECT id, teamid, flagid, value, notes, submit_time FROM score WHERE id=$1;", id).Scan(
-		&row.ID, &row.TeamID, &row.FlagID, &row.Value, &row.Notes, &row.SubmitTime)
+	err := db.QueryRowContext(ctx, "SELECT id, teamid, flagid, value, notes, source, submit_time FROM score WHERE id=$1;", id).Scan(
+		&row.ID, &row.TeamID, &row.FlagID, &row.Value, &row.Notes, &row.Source, &row.SubmitTime)
 	if err != nil {
 		return nil, err
 	}
@@ -194,8 +194,8 @@ func (db *DB) CreateScore(ctx context.Context, score api.AdminScorePost) (int64,
 	id := int64(-1)
 
 	// Create the database entry
-	err := db.QueryRowContext(ctx, "INSERT INTO score (teamid, flagid, value, notes, submit_time) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-		score.TeamID, score.FlagID, score.Value, score.Notes, time.Now()).Scan(&id)
+	err := db.QueryRowContext(ctx, "INSERT INTO score (teamid, flagid, value, notes, source, submit_time) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id",
+		score.TeamID, score.FlagID, score.Value, score.Notes, score.Source, time.Now()).Scan(&id)
 	if err != nil {
 		return -1, err
 	}

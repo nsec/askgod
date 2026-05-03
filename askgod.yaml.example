@@ -95,3 +95,6 @@ subnets:
   guests:
     - ::/0
     - 0.0.0.0/0
+
+# Enable or disable the MCP server. Defaults to false.
+mcp: true

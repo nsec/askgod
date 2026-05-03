@@ -231,6 +231,10 @@ func main() {
 					Name:  "notes",
 					Usage: "Some notes to remind you of the flag",
 				},
+				&cli.BoolFlag{
+					Name:  "agent",
+					Usage: "Override AI agent autodetection (--agent to force on, --agent=false to force off)",
+				},
 			},
 			Action: c.cmdSubmit,
 		},

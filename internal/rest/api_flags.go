@@ -171,6 +171,9 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
+	// Limit the request body size to avoid abuse.
+	request.Body = http.MaxBytesReader(writer, request.Body, 1024*1024)
+
 	// Decode the provided JSON input
 	flag := api.FlagPost{}
 
@@ -189,6 +192,16 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 
 		return
 	}
+
+	source, ok := api.NormalizeSource(flag.Source)
+	if !ok {
+		logger.Warn("Invalid source value", log15.Ctx{"source": flag.Source})
+		r.errorResponse(400, "Invalid source value", writer, request)
+
+		return
+	}
+
+	flag.Source = source
 
 	// Extract the client IP
 	ip, err := r.getIP(request)
@@ -228,7 +241,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	case errors.Is(err, sql.ErrNoRows):
 		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "invalid").Inc()
 		_ = r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
-		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
+		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "source": flag.Source, "flag": flag.Flag})
 		r.errorResponse(400, "Invalid flag submitted", writer, request)
 
 		return
@@ -236,14 +249,14 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	case errors.Is(err, os.ErrExist):
 		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "duplicate").Inc()
 		_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
-		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "flag": flag.Flag})
+		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "source": flag.Source, "flag": flag.Flag})
 		r.errorResponse(400, "The flag was already submitted", writer, request)
 
 		return
 
 	case err != nil:
 		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "error").Inc()
-		logger.Error("Failed to submit the flag", log15.Ctx{"error": err, "teamid": team.ID})
+		logger.Error("Failed to submit the flag", log15.Ctx{"error": err, "teamid": team.ID, "source": flag.Source})
 		r.errorResponse(500, "Internal Server Error", writer, request)
 
 		return
@@ -280,7 +293,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 
 	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
 
-	logger.Info("Correct flag submitted", log15.Ctx{"teamid": team.ID, "flagid": result.ID, "value": result.Value, "flag": flag.Flag})
+	logger.Info("Correct flag submitted", log15.Ctx{"teamid": team.ID, "flagid": result.ID, "value": result.Value, "source": flag.Source, "flag": flag.Flag})
 	r.jsonResponse(result, writer, request)
 }
 

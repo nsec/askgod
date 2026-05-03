@@ -49,6 +49,16 @@ func (r *rest) adminCreateScore(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	source, ok := api.NormalizeSource(newScore.Source)
+	if !ok {
+		logger.Warn("Invalid source value", log15.Ctx{"source": newScore.Source})
+		r.errorResponse(400, "Invalid source value", writer, request)
+
+		return
+	}
+
+	newScore.Source = source
+
 	r.adminCreateScoreCommon(writer, request, logger, newScore)
 }
 
@@ -64,8 +74,18 @@ func (r *rest) adminCreateScores(writer http.ResponseWriter, request *http.Reque
 		return
 	}
 
-	for _, score := range newScores {
-		if !r.adminCreateScoreCommon(writer, request, logger, score) {
+	for i, score := range newScores {
+		source, ok := api.NormalizeSource(score.Source)
+		if !ok {
+			logger.Warn("Invalid source value", log15.Ctx{"source": score.Source})
+			r.errorResponse(400, "Invalid source value", writer, request)
+
+			return
+		}
+
+		newScores[i].Source = source
+
+		if !r.adminCreateScoreCommon(writer, request, logger, newScores[i]) {
 			return
 		}
 	}
@@ -118,7 +138,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 
 	_ = r.eventSend("timeline", api.EventTimeline{TeamID: team.ID, Team: &team.TeamPut, Score: &score, Type: "score-updated"})
 
-	logger.Info("New score entry defined", log15.Ctx{"id": id, "flagid": newScore.FlagID, "teamid": newScore.TeamID, "value": newScore.Value})
+	logger.Info("New score entry defined", log15.Ctx{"id": id, "flagid": newScore.FlagID, "teamid": newScore.TeamID, "value": newScore.Value, "source": newScore.Source})
 
 	return true
 }

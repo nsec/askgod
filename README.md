@@ -48,3 +48,9 @@ This will create two executables in `./bin/linux`: `askgod` and `askgod-server`.
 ```bash
 ./bin/linux/askgod-server ./askgod.yaml.example
 ```
+
+## MCP Server
+
+The askgod server supports an MCP server at `<askgod_server_address>/mcp`.
+This MCP server allows users to submit flags.
+The MCP Server is disabled by default, but can be enabled by setting `mcp: true` in the config.

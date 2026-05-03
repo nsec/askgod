@@ -9,6 +9,7 @@ type Config struct {
 
 	Daemon   ConfigDaemon   `json:"daemon"   yaml:"daemon"`
 	Database ConfigDatabase `json:"database" yaml:"database"`
+	MCP      bool           `json:"mcp"      yaml:"mcp"`
 }
 
 // ConfigPut represents the editable Askgod configuration.

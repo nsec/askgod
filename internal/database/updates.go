@@ -10,6 +10,7 @@ import (
 var dbUpdates = []dbUpdate{
 	{version: 1, run: dbUpdateFromV0},
 	{version: 2, run: dbUpdateFromV1},
+	{version: 3, run: dbUpdateFromV2},
 }
 
 type dbUpdate struct {
@@ -48,6 +49,12 @@ CREATE TABLE IF NOT EXISTS config (
     UNIQUE(key)
 );
 	`)
+
+	return err
+}
+
+func dbUpdateFromV2(ctx context.Context, _, _ int, db *DB) error {
+	_, err := db.ExecContext(ctx, "ALTER TABLE score ADD COLUMN source VARCHAR NOT NULL DEFAULT 'unknown';")
 
 	return err
 }

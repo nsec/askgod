@@ -50,7 +50,7 @@ func (c *client) cmdHistory(ctx context.Context, cmd *cli.Command) error {
 	const layout = "2006/01/02 15:04"
 
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ID", "Description", "Value", "Timestamp", "Message", "Notes"})
+	table.SetHeader([]string{"ID", "Description", "Value", "Timestamp", "Source", "Message", "Notes"})
 	table.SetBorder(false)
 	table.SetAutoWrapText(false)
 
@@ -60,6 +60,7 @@ func (c *client) cmdHistory(ctx context.Context, cmd *cli.Command) error {
 			flag.Description,
 			strconv.FormatInt(flag.Value, 10),
 			flag.SubmitTime.Local().Format(layout),
+			flag.Source,
 			flag.ReturnString,
 			flag.Notes,
 		})

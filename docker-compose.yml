@@ -21,6 +21,7 @@ services:
     volumes:
       - ${PWD}/askgod.yaml:/askgod.yaml
     command: /askgod.yaml
+    restart: on-failure
     depends_on:
       - database
 

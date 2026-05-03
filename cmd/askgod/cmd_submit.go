@@ -3,11 +3,33 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/urfave/cli/v3"
 
 	"github.com/nsec/askgod/api"
 )
+
+func hasAgentInEnvVariable() bool {
+	for _, env := range []string{
+		"AGENT",
+		"ANTIGRAVITY_AGENT",
+		"CLAUDECODE",
+		"CLAUDE_CODE_IS_COWORK",
+		"CLINE_ACTIVE",
+		"CODEX_SHELL",
+		"CURSOR_AGENT",
+		"GEMINI_CLI",
+		"OPENCODE",
+		"WINDSURF_CASCADE_TERMINAL_KIND",
+	} {
+		if os.Getenv(env) != "" {
+			return true
+		}
+	}
+
+	return false
+}
 
 func (c *client) cmdSubmit(ctx context.Context, cmd *cli.Command) error {
 	if cmd.NArg() != 1 {
@@ -20,6 +42,22 @@ func (c *client) cmdSubmit(ctx context.Context, cmd *cli.Command) error {
 	flag := api.FlagPost{}
 	flag.Flag = cmd.Args().Get(0)
 	flag.Notes = cmd.String("notes")
+
+	// Determine whether the submission was AI-assisted using a tri-state flag:
+	// --agent forces on, --agent=false forces off, otherwise autodetect from env.
+	var agent bool
+	if cmd.IsSet("agent") {
+		agent = cmd.Bool("agent")
+	} else {
+		agent = hasAgentInEnvVariable()
+	}
+
+	flag.Source = api.SourceCLI
+	if agent {
+		flag.Source = api.SourceCLIAgent
+
+		_, _ = fmt.Print("Note: This flag submission is marked as AI-assisted.\n") //nolint:forbidigo
+	}
 
 	// Send the flag
 	resp := api.Flag{}
