@@ -185,6 +185,12 @@ func main() {
 					Category: "scores",
 					Action:   c.cmdAdminHistory,
 				},
+				{
+					Name:     "stats",
+					Usage:    "Show per-flag solve statistics",
+					Category: "scores",
+					Action:   c.cmdAdminStats,
+				},
 			},
 		},
 
