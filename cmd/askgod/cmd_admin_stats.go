@@ -13,14 +13,15 @@ import (
 	"github.com/urfave/cli/v3"
 
 	"github.com/nsec/askgod/api"
+	"github.com/nsec/askgod/internal/utils"
 )
 
 func isAISource(source string) bool {
 	switch source {
-		case api.SourceCLIAgent, api.SourceWebAgent, api.SourceMCP:
-			return true
-		default:
-			return false
+	case api.SourceCLIAgent, api.SourceWebAgent, api.SourceMCP:
+		return true
+	default:
+		return false
 	}
 }
 
@@ -51,6 +52,7 @@ func (c *client) cmdAdminStats(ctx context.Context, _ *cli.Command) error {
 	})
 
 	const layout = "2006/01/02 15:04"
+
 	teamCount := len(teams)
 
 	type flagStats struct {
@@ -99,6 +101,7 @@ func (c *client) cmdAdminStats(ctx context.Context, _ *cli.Command) error {
 		"Last solve",
 		"Solve %",
 		"% of agent solves",
+		"Tags",
 	})
 	table.SetBorder(false)
 	table.SetAutoWrapText(false)
@@ -131,6 +134,7 @@ func (c *client) cmdAdminStats(ctx context.Context, _ *cli.Command) error {
 			lastSolve,
 			solvePct,
 			aiPct,
+			utils.PackTags(flag.Tags),
 		})
 	}
 
