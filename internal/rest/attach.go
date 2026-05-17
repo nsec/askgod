@@ -19,10 +19,11 @@ var clusterPeers []string
 // AttachFunctions attaches all the REST API functions to the provided router.
 func AttachFunctions(ctx context.Context, conf *config.Config, router *http.ServeMux, db *database.DB, logger log15.Logger) error {
 	r := rest{
-		config: conf,
-		db:     db,
-		logger: logger,
-		router: router,
+		config:      conf,
+		db:          db,
+		logger:      logger,
+		router:      router,
+		rateLimiter: newTeamRateLimiter(),
 	}
 
 	// Update the list of hidden teams

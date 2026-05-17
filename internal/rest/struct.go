@@ -15,4 +15,5 @@ type rest struct {
 	logger      log15.Logger
 	router      *http.ServeMux
 	hiddenTeams []int64
+	rateLimiter *teamRateLimiter
 }

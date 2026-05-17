@@ -235,6 +235,27 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
+	// Check rate limit.
+	rl := r.config.RateLimit
+	switch r.rateLimiter.check(team.ID, rl.Rate, rl.Burst, rl.GracePeriod) {
+	case RateLimitFirstBreach:
+		logger.Warn("Team exceeded flag submission rate limit", log15.Ctx{"teamid": team.ID})
+		_ = r.eventSend("flags", api.EventRateLimit{Team: *team, Type: "blocked"})
+		r.errorResponse(429, "Too many requests", writer, request)
+
+		return
+
+	case RateLimitBlocked:
+		logger.Debug("Team flag submission blocked (rate limit grace period)", log15.Ctx{"teamid": team.ID})
+		r.errorResponse(429, "Too many requests", writer, request)
+
+		return
+
+	case RateLimitUnblocked:
+		logger.Info("Team rate limit grace period expired", log15.Ctx{"teamid": team.ID})
+		_ = r.eventSend("flags", api.EventRateLimit{Team: *team, Type: "unblocked"})
+	}
+
 	// Submit the flag
 	result, adminFlag, err := r.db.SubmitTeamFlag(request.Context(), team.ID, flag)
 	switch {

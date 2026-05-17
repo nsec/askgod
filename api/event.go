@@ -41,6 +41,14 @@ type EventTimeline struct {
 	Type   string              `json:"type"   yaml:"type"`
 }
 
+// EventRateLimit represents a rate-limit state change event (admin only).
+// Type is "blocked" when the team first exceeds the limit, "unblocked" when
+// the grace period expires and the team is allowed to submit again.
+type EventRateLimit struct {
+	Team AdminTeam `json:"team" yaml:"team"`
+	Type string    `json:"type" yaml:"type"`
+}
+
 // EventInternal represents an internal syncronisation event.
 type EventInternal struct {
 	Type string `json:"type" yaml:"type"`
