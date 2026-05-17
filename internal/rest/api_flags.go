@@ -240,7 +240,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "invalid").Inc()
-		_ = r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid"})
+		_ = r.eventSend("flags", api.EventFlag{Team: *team, Input: flag.Flag, Type: "invalid", Source: flag.Source})
 		logger.Info("Invalid flag submitted", log15.Ctx{"teamid": team.ID, "source": flag.Source, "flag": flag.Flag})
 		r.errorResponse(400, "Invalid flag submitted", writer, request)
 
@@ -248,7 +248,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 
 	case errors.Is(err, os.ErrExist):
 		metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "duplicate").Inc()
-		_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate"})
+		_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: 0, Type: "duplicate", Source: flag.Source})
 		logger.Info("The flag was already submitted", log15.Ctx{"teamid": team.ID, "source": flag.Source, "flag": flag.Flag})
 		r.errorResponse(400, "The flag was already submitted", writer, request)
 
@@ -265,7 +265,7 @@ func (r *rest) submitTeamFlag(writer http.ResponseWriter, request *http.Request,
 	metricSubmitTeam.WithLabelValues(strconv.FormatInt(team.ID, 10), "valid").Inc()
 
 	// Send the flag notification
-	_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid"})
+	_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: adminFlag, Input: flag.Flag, Value: result.Value, Type: "valid", Source: flag.Source})
 
 	// Send the timeline notification
 	total, err := r.db.GetTeamPoints(request.Context(), team.ID)

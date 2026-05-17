@@ -119,7 +119,7 @@ func (r *rest) adminCreateScoreCommon(writer http.ResponseWriter, request *http.
 		return false
 	}
 
-	_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid"})
+	_ = r.eventSend("flags", api.EventFlag{Team: *team, Flag: flag, Input: flag.Flag, Value: newScore.Value, Type: "valid", Source: newScore.Source})
 
 	// Send the timeline notification
 	total, err := r.db.GetTeamPoints(request.Context(), newScore.TeamID)

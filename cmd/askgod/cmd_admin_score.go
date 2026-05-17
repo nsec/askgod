@@ -98,7 +98,9 @@ func (c *client) cmdAdminImportScores(ctx context.Context, cmd *cli.Command) err
 	return nil
 }
 
-func (c *client) cmdAdminListScores(ctx context.Context, _ *cli.Command) error {
+func (c *client) cmdAdminListScores(ctx context.Context, cmd *cli.Command) error {
+	humanOnly := cmd.Bool("human")
+
 	// Get the data
 	resp := []api.AdminScore{}
 
@@ -115,6 +117,10 @@ func (c *client) cmdAdminListScores(ctx context.Context, _ *cli.Command) error {
 	table.SetAutoWrapText(false)
 
 	for _, entry := range resp {
+		if humanOnly && (strings.Contains(entry.Source, "agent") || strings.Contains(entry.Source, "mcp")) {
+			continue
+		}
+
 		table.Append([]string{
 			strconv.FormatInt(entry.ID, 10),
 			strconv.FormatInt(entry.TeamID, 10),

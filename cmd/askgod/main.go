@@ -57,7 +57,13 @@ func main() {
 					Name:     "monitor-flags",
 					Usage:    "Show a live stream of submitted flags",
 					Category: "server",
-					Action:   c.cmdAdminMonitorFlags,
+					Flags: []cli.Flag{
+						&cli.BoolFlag{
+							Name:  "human",
+							Usage: "Only show submissions from human sources (excludes agent/mcp)",
+						},
+					},
+					Action: c.cmdAdminMonitorFlags,
 				},
 
 				{
@@ -170,7 +176,13 @@ func main() {
 					Name:     "list-scores",
 					Usage:    "List all the score entries",
 					Category: "scores",
-					Action:   c.cmdAdminListScores,
+					Flags: []cli.Flag{
+						&cli.BoolFlag{
+							Name:  "human",
+							Usage: "Only show submissions from human sources (excludes agent/mcp)",
+						},
+					},
+					Action: c.cmdAdminListScores,
 				},
 				{
 					Name:      "update-score",
