@@ -3,11 +3,33 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
+	"github.com/nsec/askgod/api"
 	"github.com/nsec/askgod/internal/utils"
 )
+
+func matchesFlagIDs(flagID int64, flagIDs []int64) bool {
+	if len(flagIDs) == 0 {
+		return true
+	}
+
+	return slices.Contains(flagIDs, flagID)
+}
+
+func flagMatchesIDs(flag *api.AdminFlag, flagIDs []int64) bool {
+	if len(flagIDs) == 0 {
+		return true
+	}
+
+	if flag == nil {
+		return false
+	}
+
+	return matchesFlagIDs(flag.ID, flagIDs)
+}
 
 func getStructField(base reflect.Value, key string) (reflect.Value, error) {
 	field := base

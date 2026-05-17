@@ -14,7 +14,9 @@ import (
 	"github.com/nsec/askgod/internal/utils"
 )
 
-func (c *client) cmdAdminHistory(ctx context.Context, _ *cli.Command) error {
+func (c *client) cmdAdminHistory(ctx context.Context, cmd *cli.Command) error {
+	flagIDs := cmd.Int64Slice("flags")
+
 	// Get the scores
 	scores := []api.AdminScore{}
 
@@ -51,6 +53,10 @@ func (c *client) cmdAdminHistory(ctx context.Context, _ *cli.Command) error {
 	table.SetAutoWrapText(false)
 
 	for _, entry := range scores {
+		if !matchesFlagIDs(entry.FlagID, flagIDs) {
+			continue
+		}
+
 		// Get the team
 		team := api.AdminTeam{}
 

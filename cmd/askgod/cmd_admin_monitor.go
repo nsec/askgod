@@ -81,6 +81,8 @@ func (c *client) cmdAdminMonitorLog(_ context.Context, cmd *cli.Command) error {
 }
 
 func (c *client) cmdAdminMonitorFlags(_ context.Context, cmd *cli.Command) error {
+	flagIDs := cmd.Int64Slice("flags")
+
 	humanOnly := cmd.Bool("human")
 
 	// Connection handler
@@ -112,6 +114,10 @@ func (c *client) cmdAdminMonitorFlags(_ context.Context, cmd *cli.Command) error
 
 		err = json.Unmarshal(event.Metadata, &score)
 		if err != nil {
+			continue
+		}
+
+		if !flagMatchesIDs(score.Flag, flagIDs) {
 			continue
 		}
 

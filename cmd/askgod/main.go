@@ -58,6 +58,10 @@ func main() {
 					Usage:    "Show a live stream of submitted flags",
 					Category: "server",
 					Flags: []cli.Flag{
+						&cli.Int64SliceFlag{
+							Name:  "flags",
+							Usage: "Only show entries for flags with the given IDs",
+						},
 						&cli.BoolFlag{
 							Name:  "human",
 							Usage: "Only show submissions from human sources (excludes agent/mcp)",
@@ -195,7 +199,13 @@ func main() {
 					Name:     "history",
 					Usage:    "List the global flag history",
 					Category: "scores",
-					Action:   c.cmdAdminHistory,
+					Flags: []cli.Flag{
+						&cli.Int64SliceFlag{
+							Name:  "flags",
+							Usage: "Only show entries for flags with the given IDs",
+						},
+					},
+					Action: c.cmdAdminHistory,
 				},
 				{
 					Name:     "stats",
