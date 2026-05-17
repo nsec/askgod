@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"strings"
 
 	"github.com/inconshreveable/log15"
@@ -141,6 +143,65 @@ func (c *client) cmdAdminMonitorFlags(_ context.Context, cmd *cli.Command) error
 			_, _ = fmt.Printf("[%s][%s] Team \"%s\" (%s) submitted invalid flag \"%s\" [%s]\n", //nolint:forbidigo
 				event.Server, event.Timestamp.Local().Format(layout), score.Team.Name, team, score.Input, score.Source)
 		default:
+		}
+	}
+
+	return nil //nolint:nilerr
+}
+
+// wsChannelForEventType maps user-facing event type names to websocket channel
+// names. "ratelimit" events travel on the "flags" channel.
+var wsChannelForEventType = map[string]string{
+	"flags":     "flags",
+	"logging":   "logging",
+	"timeline":  "timeline",
+	"ratelimit": "flags",
+}
+
+// cmdAdminMonitorHook connects to the requested event channels and calls
+// <script> for every received event, passing the raw event JSON on stdin.
+// The event JSON has the shape: {"server":..., "type":..., "timestamp":..., "metadata":{...}}
+func (c *client) cmdAdminMonitorHook(_ context.Context, cmd *cli.Command) error {
+	if cmd.NArg() == 0 {
+		return fmt.Errorf("missing required argument: <script>")
+	}
+
+	script := cmd.Args().First()
+
+	// Build the deduplicated list of websocket channels to subscribe to.
+	seen := map[string]bool{}
+	wsChannels := []string{}
+
+	for _, t := range strings.Split(cmd.String("event"), ",") {
+		t = strings.TrimSpace(t)
+
+		ch, ok := wsChannelForEventType[t]
+		if !ok {
+			return fmt.Errorf("unknown event type %q (valid: flags, logging, timeline, ratelimit)", t)
+		}
+
+		if !seen[ch] {
+			seen[ch] = true
+			wsChannels = append(wsChannels, ch)
+		}
+	}
+
+	conn, err := c.websocket("/events?type=" + strings.Join(wsChannels, ","))
+	if err != nil {
+		return err
+	}
+
+	for {
+		_, data, err := conn.ReadMessage()
+		if err != nil {
+			break
+		}
+
+		hookCmd := exec.Command(script) //nolint:gosec
+		hookCmd.Stdin = bytes.NewReader(data)
+
+		if err := hookCmd.Run(); err != nil {
+			_, _ = fmt.Printf("hook error: %v\n", err) //nolint:forbidigo
 		}
 	}
 

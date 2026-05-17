@@ -14,9 +14,10 @@ type Config struct {
 
 // ConfigPut represents the editable Askgod configuration.
 type ConfigPut struct {
-	Scoring ConfigScoring `json:"scoring" yaml:"scoring"`
-	Teams   ConfigTeams   `json:"teams"   yaml:"teams"`
-	Subnets ConfigSubnets `json:"subnets" yaml:"subnets"`
+	Scoring   ConfigScoring   `json:"scoring"    yaml:"scoring"`
+	Teams     ConfigTeams     `json:"teams"      yaml:"teams"`
+	Subnets   ConfigSubnets   `json:"subnets"    yaml:"subnets"`
+	RateLimit ConfigRateLimit `json:"rate_limit" yaml:"rate_limit"`
 }
 
 // ConfigDaemon represents the Daemon part of the Askgod configuration.
@@ -57,6 +58,16 @@ type ConfigTeams struct {
 	SelfRegister bool     `json:"self_register" yaml:"self_register"`
 	SelfUpdate   bool     `json:"self_update"   yaml:"self_update"`
 	Hidden       []string `json:"hidden"        yaml:"hidden"`
+}
+
+// ConfigRateLimit represents the rate limiting part of the Askgod configuration.
+// Rate is the token refill rate in submissions per second.
+// Burst is the maximum burst capacity (bucket size).
+// GracePeriod is how long (in minutes) a team is blocked after busting the limit.
+type ConfigRateLimit struct {
+	Rate        float64 `json:"rate"         yaml:"rate"`
+	Burst       float64 `json:"burst"        yaml:"burst"`
+	GracePeriod float64 `json:"grace_period" yaml:"grace_period"`
 }
 
 // ConfigSubnets represents the Daemon part of the Askgod configuration.

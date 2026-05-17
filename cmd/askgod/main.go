@@ -69,6 +69,20 @@ func main() {
 					},
 					Action: c.cmdAdminMonitorFlags,
 				},
+				{
+					Name:      "monitor-hook",
+					Usage:     "Call a script for each matching event",
+					ArgsUsage: "<script>",
+					Category:  "server",
+					Flags: []cli.Flag{
+						&cli.StringFlag{
+							Name:     "event",
+							Usage:    "Comma-separated event types to monitor: flags, logging, timeline, ratelimit",
+							Required: true,
+						},
+					},
+					Action: c.cmdAdminMonitorHook,
+				},
 
 				{
 					Name:      "add-flag",
