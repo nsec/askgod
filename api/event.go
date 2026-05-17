@@ -25,12 +25,12 @@ type EventLogging struct {
 
 // EventFlag represents a flag submission event entry (admin only).
 type EventFlag struct {
-	Team AdminTeam  `json:"team" yaml:"team"`
-	Flag *AdminFlag `json:"flag" yaml:"flag"`
-
-	Input string `json:"input" yaml:"input"`
-	Value int64  `json:"value" yaml:"value"`
-	Type  string `json:"type"  yaml:"type"`
+	Team   AdminTeam  `json:"team"   yaml:"team"`
+	Flag   *AdminFlag `json:"flag"   yaml:"flag"`
+	Input  string     `json:"input"  yaml:"input"`
+	Value  int64      `json:"value"  yaml:"value"`
+	Type   string     `json:"type"   yaml:"type"`
+	Source string     `json:"source" yaml:"source"`
 }
 
 // EventTimeline represents a change to the timeline (guest only).
